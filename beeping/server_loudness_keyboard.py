@@ -13,7 +13,7 @@ def adjust_volume():
         if keyboard.is_pressed('up'):
             loudness = min(1.0, loudness + 0.05)
             pygame.mixer.music.set_volume(loudness)
-            print(f"当前音量：{loudness}")
+            print(f"当前音量：{round(loudness,2)}")
             time.sleep(0.1)  # 增加这个延迟以避免过快调整音量
         elif keyboard.is_pressed('down'):
             loudness = max(0.0, loudness - 0.05)
