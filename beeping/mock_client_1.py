@@ -6,7 +6,7 @@ def send_data_a():
     host = 'localhost'
     port = 12345
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    
+    #hello world
     try:
         while True:
             data_a = random.uniform(1, 100)
