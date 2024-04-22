@@ -4,24 +4,38 @@ from pylsl import StreamInlet, resolve_stream
 import xml.etree.ElementTree as ET
 import keyboard
 import socket
+import csv
+import time
 
 def get_channel_names_from_info(info):
     info_xml = info.as_xml()
     root = ET.fromstring(info_xml)
     channel_names = []
+    full_names = []
     for channel in root.find('desc').find('channels').findall('channel'):
         name = channel.find('label').text
+        full_names.append(name)
         channel_type = channel.find('type').text
         if channel_type.upper() == 'EEG' and name in ['Fp1', 'Fpz', 'Fp2']:
             channel_names.append(name)
-    return channel_names
+    return channel_names,full_names
+
+udp_ip = "localhost"
+udp_port = 12345
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 print("Looking for an EEG stream...")
 streams = resolve_stream('type', 'EEG')
 inlet = StreamInlet(streams[0])
 print("Stream found and connected.")
 
-channel_names = get_channel_names_from_info(inlet.info())
+raw_data_file = open('raw_data.csv', 'w', newline='')
+raw_data_writer = csv.writer(raw_data_file)
+power_bands_file = open('power_bands.csv', 'w', newline='')
+power_bands_writer = csv.writer(power_bands_file)
+channel_names,full_names = get_channel_names_from_info(inlet.info())
+raw_data_writer.writerow(['Timestamp_EEG', 'Sample','timestamp_local',full_names])
+
 sfreq = inlet.info().nominal_srate()
 sfreq = 1000  # Sampling frequency is 1000 Hz
 samples_per_epoch = 1000  # 1 second worth of data at 1000 Hz
@@ -35,6 +49,7 @@ while True:
 
     sample, timestamp = inlet.pull_sample()
     if sample:
+        raw_data_writer.writerow([time.time(),sample,timestamp])
         buffer = np.roll(buffer, -step_samples, axis=0)  # Shift data to the left
         buffer[-step_samples:] = sample[:-3]  # Insert new samples at the end
 
@@ -50,7 +65,17 @@ while True:
             psd_data = spectrum.get_data()
 
             bands = {'alpha': (8, 12), 'beta': (13, 30), 'theta': (4, 7), 'delta': (1, 3)}
-            power_bands = {band: np.mean(psd_data[:, np.logical_and(freqs >= freq_range[0], freqs <= freq_range[1])], axis=1) for band, freq_range in bands.items()}
+            power_bands = {band: np.mean(psd_data[:, np.logical_and(freqs >= freq_range[0], freqs <= freq_range[1])], axis=1) for band, freq_range in bands.items()}            
+            alpha_mean = np.mean(power_bands['alpha'])
+            beta_mean = np.mean(power_bands['beta'])
+            theta_mean = np.mean(power_bands['theta'])
+            delta_mean = np.mean(power_bands['delta'])
+            arousal = (alpha_mean + beta_mean) / (theta_mean + delta_mean)
+            power_bands_writer.writerow([time.time(),arousal])
 
-            message = f"{timestamp},{power_bands['alpha']},{power_bands['beta']},{power_bands['theta']},{power_bands['delta']}"
-            print(message)
+            message = f"arousal:{arousal}"
+            sock.sendto(message.encode(), (udp_ip, udp_port))
+            raw.close()
+
+raw_data_file.close()
+power_bands_file.close()
