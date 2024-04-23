@@ -8,8 +8,8 @@ from matplotlib.animation import FuncAnimation
 # 初始化pygame的混音器模块
 pygame.mixer.init()
 
-# 设置初始音量
-loudness = 0.5
+# 全局变量设置初始音量和音量历史
+loudness = 0.1
 loudness_history = []
 
 # 函数：调整音量
@@ -20,36 +20,13 @@ def adjust_volume(arousal):
     loudness_history.append(loudness)  # 添加当前音量到历史记录中
     print(f"当前音量：{round(loudness, 2)}")
 
-# 函数：播放音频
-def play_audio():
-    pygame.mixer.music.load("one_minute_beeps.wav")
-    pygame.mixer.music.set_volume(loudness)
-    pygame.mixer.music.play(-1)  # 循环播放
-
-    while pygame.mixer.music.get_busy():
-        time.sleep(1)
-
-# 函数：UDP Socket监听并接收数据
-def receive_data():
-    udp_ip = "localhost"
-    udp_port = 12345
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind((udp_ip, udp_port))
-
-    while True:
-        data, addr = sock.recvfrom(1024)  # 缓冲区大小为1024字节
-        message = data.decode()
-        if message.startswith("arousal:"):
-            arousal_value = float(message.split(":")[1])
-            adjust_volume(arousal_value)
-
+# 函数：绘制音量历史数据的折线图
 def plot_loudness():
     fig, ax = plt.subplots()
-    max_points = 20  # 设置滚动窗口大小
+    max_points = 100
 
     def update(frame):
         ax.clear()
-        # 如果数据点数量超过max_points，则只绘制最后的max_points个点
         if len(loudness_history) > max_points:
             plot_data = loudness_history[-max_points:]
         else:
@@ -64,19 +41,60 @@ def plot_loudness():
     ani = FuncAnimation(fig, update, interval=100)
     plt.show()
 
+# 函数：接收音量调节数据
+def receive_volume_data(sock):
+    while True:
+        data, addr = sock.recvfrom(1024)
+        message = data.decode()
+        if message.startswith("arousal:"):
+            arousal_value = float(message.split(":")[1])
+            adjust_volume(arousal_value)
 
+# 函数：音频播放控制
+def control_audio(sock):
+    while True:
+        data, addr = sock.recvfrom(1024)
+        command = data.decode().strip().lower()
+
+        if command == "play":
+            if not pygame.mixer.music.get_busy():
+                pygame.mixer.music.play(-1)
+                print("音频播放")
+            else:
+                print("音频已经在播放中")
+
+        elif command == "pause":
+            if pygame.mixer.music.get_busy():
+                pygame.mixer.music.pause()
+                print("音频暂停")
+            else:
+                print("音频已经暂停")
+
+        elif command == "stop":
+            pygame.mixer.music.stop()
+            print("音频停止")
+            break
+
+# 主函数
 def main():
-    print(f"初始音量：{loudness}")
+    pygame.mixer.music.load("one_minute_beeps.wav")
+    pygame.mixer.music.set_volume(loudness)
+    # pygame.mixer.music.play(-1)  
 
-    # 创建并启动音频播放线程
-    audio_thread = threading.Thread(target=play_audio, daemon=True)
-    audio_thread.start()
+    # 设置两个端口和套接字
+    volume_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    volume_sock.bind(('0.0.0.0', 12345))  # 用于音量调节的端口
 
-    # 创建并启动数据接收线程
-    data_thread = threading.Thread(target=receive_data, daemon=True)
-    data_thread.start()
+    control_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    control_sock.bind(('0.0.0.0', 12346))  # 用于控制播放状态的端口
 
-    # 创建并启动绘图线程
+    # 创建并启动线程
+    volume_thread = threading.Thread(target=receive_volume_data, args=(volume_sock,), daemon=True)
+    volume_thread.start()
+
+    control_thread = threading.Thread(target=control_audio, args=(control_sock,), daemon=True)
+    control_thread.start()
+
     plot_thread = threading.Thread(target=plot_loudness, daemon=True)
     plot_thread.start()
 
@@ -86,6 +104,8 @@ def main():
     except KeyboardInterrupt:
         print("程序已停止")
         pygame.mixer.quit()
+        volume_sock.close()
+        control_sock.close()
 
 if __name__ == '__main__':
     main()
