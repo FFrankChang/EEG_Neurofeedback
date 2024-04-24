@@ -2,28 +2,32 @@ import time
 from random import uniform
 from pylsl import StreamInfo, StreamOutlet
 
-# 用户可以设置的发送频率
-frequency = 1000  # 默认频率为1000 Hz, 可以修改为任意值
+channels = 32
 
-info = StreamInfo('MockStream', 'EEG', 3, frequency, 'float32', 'myuid34234')
+frequency = 4000  
+
+info = StreamInfo('MockStream', 'EEG', channels, frequency, 'float32', 'myuid34234')
 outlet = StreamOutlet(info)
 
 start_time = time.time()
 sample_count = 0
 
 try:
-    print(f"Sending data at {frequency} Hz...")
+    print(f"Sending data at {frequency} Hz with {channels} channels...")
+    last_time = time.time()
+    count  = 0
     while True:
-        # 创建样本数据
-        sample = [uniform(200, 300), uniform(200, 300), uniform(-1000, -900)]
+        sample = [uniform(0, 1000) for _ in range(channels)]
         outlet.push_sample(sample)
         sample_count += 1
-
-        # 计算应该发送下一个样本的时间
+        count += 1
+        current_time = time.time()
+        if current_time - last_time >= 1.0:
+            print(f"Frames per second: {count}")
+            count = 0 
+            last_time = current_time 
         next_sample_time = start_time + (sample_count / frequency)
         sleep_time = max(0, next_sample_time - time.time())
-        
-        # 休眠直到下一个样本发送时间
         if sleep_time > 0:
             time.sleep(sleep_time)
 except KeyboardInterrupt:
