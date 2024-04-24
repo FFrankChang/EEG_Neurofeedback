@@ -12,12 +12,19 @@ inlet = StreamInlet(streams[0])
 data_queue = Queue()
 
 def data_receiver():
+    last_time = time.time()
+    count = 0
     while True:
-        # 拉取数据样本
-        sample, timestamp = inlet.pull_sample()
+        samples, timestamp = inlet.pull_chunk()
         if timestamp:
-            # 将数据样本放入队列中
-            data_queue.put(sample)
+            for sample in samples:
+                data_queue.put(sample)
+                count += 1
+                current_time = time.time()
+                if current_time - last_time >= 1.0:
+                    print(f"Samples per second: {count}")
+                    count = 0
+                    last_time = current_time
 
 def data_processor():
     samples = []
