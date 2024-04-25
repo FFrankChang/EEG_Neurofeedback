@@ -1,3 +1,4 @@
+import os
 import pygame
 import threading
 import socket
@@ -7,6 +8,9 @@ from matplotlib.animation import FuncAnimation
 
 # 初始化pygame的混音器模块
 pygame.mixer.init()
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+audio_file = os.path.join(current_dir, "one_minute_beeps.wav")
 
 # 全局变量设置初始音量和音量历史
 loudness = 0.1
@@ -77,9 +81,9 @@ def control_audio(sock):
 
 # 主函数
 def main():
-    pygame.mixer.music.load("one_minute_beeps.wav")
+    pygame.mixer.music.load(audio_file)
     pygame.mixer.music.set_volume(loudness)
-    # pygame.mixer.music.play(-1)  
+    pygame.mixer.music.play(-1)  
 
     # 设置两个端口和套接字
     volume_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -102,7 +106,6 @@ def main():
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("程序已停止")
         pygame.mixer.quit()
         volume_sock.close()
         control_sock.close()
