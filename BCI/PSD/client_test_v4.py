@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 import csv
 from scipy.signal import welch, butter, filtfilt
 import matplotlib.pyplot as plt
-
+from datetime import datetime
 def get_channel_names_from_info(info):
     info_xml = info.as_xml()
     root = ET.fromstring(info_xml)
@@ -24,16 +24,15 @@ def get_channel_names_from_info(info):
     return EEG_channel_names,full_names
 
 # Resolve stream and create inlet
-streams = resolve_stream('name', 'MockStream')
+streams = resolve_stream('name', 'SAGA')
 inlet = StreamInlet(streams[0])
-# channel_names, full_names = get_channel_names_from_info(inlet.info())
-full_names = ['F7', 'F8', 'P7']
-num_channels = 32  # Set this to the number of EEG channels
+channel_names, full_names = get_channel_names_from_info(inlet.info())
+num_channels = 35  # Set this to the number of EEG channels
 sfreq = inlet.info().nominal_srate()
 
 data_queue = Queue()
-raw_data_file = 'raw_eeg_data.csv'
-processed_data_file = 'alpha_band_psd.csv'
+raw_data_file = 'raw_data_0425_03.csv'
+processed_data_file = 'data_psd_0425_03.csv'
 udp_ip = "localhost"
 udp_port = 12345
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -54,9 +53,9 @@ def bandpass_filter(data, lowcut=1.0, highcut=40.0, fs=1000.0, order=5):
 
 def data_receiver():
     with open(raw_data_file, 'w', newline='') as file:
-        # header = ['timestamp'] + full_names + ['mechine_timestamp']
-        # file.write(','.join(header) + '\n')
-        # print(header)
+        header = ['timestamp'] + full_names + ['mechine_timestamp']
+        file.write(','.join(header) + '\n')
+        print(header)
         while True:
             samples, timestamps = inlet.pull_chunk()
             if timestamps:
