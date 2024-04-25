@@ -4,7 +4,7 @@ import os
 
 # 数据加载路径
 base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-data_path = os.path.join(base_path, 'data', 'psd_20240425_204556_pre.csv')
+data_path = os.path.join(base_path, 'data', 'data_psd_0425_frightened.csv')
 
 # 加载数据并去除前10行
 data_cleaned = pd.read_csv(data_path).iloc[10:]
@@ -17,25 +17,26 @@ arousal_std = data_cleaned['arousal'].std()
 time_diff = data_cleaned['timestamp'].iloc[-1] - data_cleaned['timestamp'].iloc[0]
 
 # 创建图表和两个y轴
-fig, ax1 = plt.subplots(figsize=(12, 6))
+fig, ax1 = plt.subplots(figsize=(18, 6))
+
+# 将arousal绘制在左侧y轴
+ax1.plot(data_cleaned['timestamp'], data_cleaned['arousal'], 'cornflowerblue', label='arousal', linewidth=1)
+ax1.set_ylabel('Arousal')
+ax1.set_xlabel('Timestamp')
+ax1.set_title('Brain EEG PSD Averages with Arousal')
+ax1.grid(True)
+
+# 创建第二个y轴用于其他脑电波
+ax2 = ax1.twinx()
 
 # 设定颜色列表
 colors = ['blue', 'green', 'purple', 'orange']
 
-# 绘制alpha_avg, beta_avg, theta_avg, delta_avg在主轴上
+# 绘制alpha_avg, beta_avg, theta_avg, delta_avg在右轴上
 for idx, column in enumerate(['alpha_avg', 'beta_avg', 'theta_avg', 'delta_avg']):
-    ax1.plot(data_cleaned['timestamp'], data_cleaned[column], label=column, alpha=0.2, color=colors[idx])
+    ax2.plot(data_cleaned['timestamp'], data_cleaned[column], label=column, alpha=0.1, color=colors[idx])
 
-# 设置主轴的标签和标题
-ax1.set_xlabel('Timestamp')
-ax1.set_ylabel('Brain Wave Averages')
-ax1.set_title('Brain EEG Averages with Arousal Highlighted')
-ax1.grid(True)
-
-# 创建第二个y轴用于arousal
-ax2 = ax1.twinx()
-ax2.plot(data_cleaned['timestamp'], data_cleaned['arousal'], 'lightcoral', label='arousal', linewidth=2)
-ax2.set_ylabel('Arousal')
+ax2.set_ylabel('Brain Wave Averages')
 
 # 添加图例
 lines, labels = ax1.get_legend_handles_labels()
