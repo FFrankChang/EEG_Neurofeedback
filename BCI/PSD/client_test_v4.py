@@ -84,7 +84,8 @@ def data_processor():
                     # Process the window of 1000 samples every time the queue length hits a multiple of 100
                     if count>=100:
                         start_time = time.time()  # Start time for performance measurement
-                        filtered_samples = np.array([bandpass_filter(np.array(samples)[:, i]) for i in range(num_channels)])
+                        selected_samples = np.array(samples)[:, [4, 5, 22, 23]]
+                        filtered_samples = np.array([bandpass_filter(np.array(selected_samples)[:, i]) for i in range(4)])
                         f, psd = welch(filtered_samples, fs=1000, nperseg=512)
                         band_psd = {band: np.mean(psd[:, (f >= low) & (f <= high)]) for band, (low, high) in bands.items()}
                         num = band_psd['alpha'] + band_psd['beta']

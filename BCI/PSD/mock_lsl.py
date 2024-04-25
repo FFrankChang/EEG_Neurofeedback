@@ -4,7 +4,7 @@ from pylsl import StreamInfo, StreamOutlet
 
 channels = 32
 
-frequency = 4000  
+frequency = 1000  
 
 info = StreamInfo('MockStream', 'EEG', channels, frequency, 'float32', 'myuid34234')
 outlet = StreamOutlet(info)
