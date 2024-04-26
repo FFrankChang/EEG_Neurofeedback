@@ -4,7 +4,7 @@ import os
 
 # 数据加载路径
 base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-data_path = os.path.join(base_path, 'data', 'data_psd_0425_frightened.csv')
+data_path = os.path.join(base_path, 'data', 'data_psd.csv')
 
 # 加载数据并去除前10行
 data_cleaned = pd.read_csv(data_path).iloc[10:]
@@ -20,7 +20,7 @@ time_diff = data_cleaned['timestamp'].iloc[-1] - data_cleaned['timestamp'].iloc[
 fig, ax1 = plt.subplots(figsize=(18, 6))
 
 # 将arousal绘制在左侧y轴
-ax1.plot(data_cleaned['timestamp'], data_cleaned['arousal'], 'cornflowerblue', label='arousal', linewidth=1)
+ax1.plot(data_cleaned['timestamp'], data_cleaned['arousal'], 'cornflowerblue', label='arousal', linewidth=0.5)
 ax1.set_ylabel('Arousal')
 ax1.set_xlabel('Timestamp')
 ax1.set_title('Brain EEG PSD Averages with Arousal')
@@ -30,7 +30,7 @@ ax1.grid(True)
 ax2 = ax1.twinx()
 
 # 设定颜色列表
-colors = ['blue', 'green', 'purple', 'orange']
+colors = ['gray', 'green', 'purple', 'orange']
 
 # 绘制alpha_avg, beta_avg, theta_avg, delta_avg在右轴上
 for idx, column in enumerate(['alpha_avg', 'beta_avg', 'theta_avg', 'delta_avg']):
