@@ -62,10 +62,10 @@ def plot_speed_with_mode_switch(ax, data):
 
 def main():
     script_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    eeg_data_path = os.path.join(script_path, 'data', 'data_psd_0425_02.csv')
+    eeg_data_path = os.path.join(script_path, 'data', 'merged_file2.csv')
     eeg_data = load_and_clean_data(eeg_data_path)
 
-    vehicle_data_path = os.path.join(script_path, 'data', 'mainvehicle_20240425170754_1_TTC.csv')
+    vehicle_data_path = os.path.join(script_path, 'data', 'merged_file2 copy.csv')
     vehicle_data = pd.read_csv(vehicle_data_path)
     vehicle_data['Time'] = pd.to_datetime(vehicle_data['Time'], unit='s').dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai').dt.tz_localize(None)
 
