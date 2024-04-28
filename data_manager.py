@@ -1,121 +1,83 @@
-import matplotlib.pyplot as plt
-from matplotlib.dates import DateFormatter
+import pandas as pd
+import numpy as np
+import os
 
-class DataVisualizer:
-    def __init__(self, data_manager):
-        self.data_manager = data_manager
-
-    def plot_arousal_and_brainwaves(self, ax):
-        """Plot arousal and brainwaves on given axes."""
-        data = self.data_manager.sync_data()  # Assuming this method exists and syncs the relevant EEG data
-        ax.plot(data['timestamp'], data['arousal'], 'cornflowerblue', label='arousal', linewidth=0.5)
-        ax.set_ylabel('Arousal')
-        ax.set_xlabel('Timestamp')
-        ax.set_title('Brain EEG Averages with Arousal Highlighted')
-        ax.grid(True)
-
-        ax2 = ax.twinx()
-        colors = ['blue', 'green', 'purple', 'orange']
-        brainwave_columns = ['alpha_avg', 'beta_avg', 'theta_avg', 'delta_avg']  # Ensure these columns exist in your data
-        for idx, column in enumerate(brainwave_columns):
-            ax2.plot(data['timestamp'], data[column], label=column, alpha=0.2, color=colors[idx], linewidth=0.5)
-        ax2.set_ylabel('Brain Wave Averages')
-
-        for time in self.data_manager.mode_times:
-            ax.axvline(x=time, color='lightcoral', linestyle='--', label='Take over')
-        for time in self.data_manager.collision_times:
-            ax.axvline(x=time, color='black', linestyle='-.')
-
-        ax.legend(loc='upper left')
-        ax2.legend(loc='upper right')
-        ax.xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
-
-    def plot_speed_with_mode_switch(self, ax):
-        """Plot vehicle speeds and mode switches on given axes."""
-        data = self.data_manager.sync_data()  # Assuming sync_data appropriately combines vehicle data
-        ax.plot(data['timestamp'], data['Speed'], label='Main Vehicle Speed', color='mediumseagreen', linestyle=':', alpha=0.5)
-        ax.plot(data['timestamp'], data['Lead_Vehicle_Speed'], label='Lead Vehicle Speed', color='royalblue', linestyle=':', alpha=0.5)
-
-        for time in self.data_manager.mode_times:
-            ax.axvline(x=time, color='lightcoral', linestyle='--', label='Take over')
-        for time in self.data_manager.collision_times:
-            ax.axvline(x=time, color='black', linestyle='-.')
-
-        ax.set_title('Speed Over Time with TTC')
-        ax.set_xlabel('Time')
-        ax.set_ylabel('Speed')
-        ax.legend(loc='upper left')
-        ax.grid(True)
-        ax.xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
-
-        ax2 = ax.twinx()
-        ax2.plot(data['timestamp'], data['TTC'], label='TTC', color='purple', linestyle='-')
-        ax2.set_ylabel('TTC (s)')
-        ax2.set_yscale('log')
-        ax2.legend(loc='upper right')
-
-    def plot_pupil_diameters(self, ax):
-        """Plot smoothed pupil diameters with event markers."""
-        df = self.data_manager.eye_data
-        df['smoothed_left'] = df['smarteye|LeftPupilDiameter'].rolling(window=10, center=True).mean()
-        df['smoothed_right'] = df['smarteye|RightPupilDiameter'].rolling(window=10, center=True).mean()
-
-        ax.plot(df['timestamp'], df['smoothed_left'], label='Smoothed Left Pupil Diameter', linewidth=0.5)
-        ax.plot(df['timestamp'], df['smoothed_right'], label='Smoothed Right Pupil Diameter', linewidth=0.5)
+class DataManager:
+    def __init__(self, eye_csv_path, carla_csv_path, eeg_csv_path, eeg_raw_path):
+        self.eye_data = self.load_and_process_eye_data(eye_csv_path)
+        self.carla_data = self.load_and_process_carla_data(carla_csv_path)
+        self.eeg_data = self.load_csv_data(eeg_csv_path, skiprows=0)
+        self.ecg_data = self.load_csv_data(eeg_raw_path)
+        self.trim_data()
+        self.load_event_data()
+        self.sync_data = self.sync_data()
         
-        # Add event markers
-        for time in self.data_manager.mode_times:
-            ax.axvline(x=time, color='lightcoral', linestyle='--', label='Mode Switched')
-        for time in self.data_manager.collision_times:
-            ax.axvline(x=time, color='black', linestyle='-.', label='Collision')
+    def load_csv_data(self, file_path, skiprows=None):
+        """加载CSV文件数据"""
+        return pd.read_csv(file_path, skiprows=skiprows)
 
-        ax.set_xlabel('Time (seconds)')
-        ax.set_ylabel('Pupil Diameter')
-        ax.set_title('Smoothed Pupil Diameter Over Time')
-        ax.legend()
-
-    def plot_heart_rate(self, ax):
-        """Plot heart rate over time with event markers."""
-        ecg_values = self.data_manager.ecg_data['BIP 01'].values
-        peaks, _ = find_peaks(ecg_values, distance=1000 / 2)  # Assuming a sampling rate
-        heart_rate_times = self.data_manager.ecg_data['timestamp'].iloc[peaks]
-        rr_intervals = np.diff(peaks) / 1000 * 1000
-        heart_rate = 60 / (rr_intervals / 1000)
-
-        ax.plot(heart_rate_times, heart_rate, label='Heart Rate', color='red')
+    def load_and_process_eye_data(self, file_path):
+        """读取并处理眼动数据，调整时间戳格式并调整列位置"""
+        df = pd.read_csv(file_path)
+        df['timestamp'] = df['StorageTime'] / 10000000
+        storage_time_index = df.columns.get_loc('StorageTime')
+        df.insert(storage_time_index, 'new_timestamp', df['timestamp'])
+        df.drop(columns=['StorageTime', 'timestamp','ID'], inplace=True)
+        df.rename(columns={'new_timestamp': 'timestamp'}, inplace=True)
         
-        # Add event markers
-        for time in self.data_manager.mode_times:
-            ax.axvline(x=time, color='lightcoral', linestyle='--', label='Mode Switched')
-        for time in self.data_manager.collision_times:
-            ax.axvline(x=time, color='black', linestyle='-.', label='Collision')
+        return df
+    
+    def load_event_data(self):
+        """Load mode switch and collision events."""
+        event_data = self.carla_data.copy()
+        event_data['timestamp'] = pd.to_datetime(event_data['timestamp'], unit='s').dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai').dt.tz_localize(None)
 
-        ax.set_xlabel('Time')
-        ax.set_ylabel('Heart Rate (beats per minute)')
-        ax.set_title('Heart Rate Over Time')
-        ax.legend()
+        self.mode_times = event_data[event_data['Mode_Switched'] == 'Yes']['timestamp'].tolist()
+        self.collision_times = event_data[event_data['Collision'] == 'Yes']['timestamp'].tolist()
+        
+    def load_and_process_carla_data(self, file_path):
+        """加载并处理Carla数据，包括拆分Steer列和计算TTC"""
+        data = pd.read_csv(file_path)
+        data = self.split_steer_column(data)
+        self.calculate_ttc(data)
+        return data
 
+    def split_steer_column(self, data):
+        """拆分Steer列到三个新列：Steering_Angle, Throttle, Brake"""
+        data['Steer'] = data['Steer'].apply(lambda x: eval(x))
+        data['Steering_Angle'] = data['Steer'].apply(lambda x: x[0])
+        data['Throttle'] = data['Steer'].apply(lambda x: x[1])
+        data['Brake'] = data['Steer'].apply(lambda x: x[2])
+        data.drop('Steer', axis=1, inplace=True)
+        return data
 
-    def visualize(self, plots=['brainwaves', 'speed', 'pupil', 'heart']):
-        """Visualize selected plots."""
-        fig, axs = plt.subplots(len(plots), 1, figsize=(10, 5 * len(plots)))
-        if len(plots) == 1:
-            axs = [axs]  # Make sure axs is always a list
+    def calculate_ttc(self, data):
+        """计算TTC并更新carla_data"""
+        data['Distance'] = np.sqrt((data['Location_x'] - data['Lead_Vehicle_X'])**2 +
+                                   (data['Location_y'] - data['Lead_Vehicle_Y'])**2 +
+                                   (data['Location_z'] - data['Lead_Vehicle_Z'])**2)
+        data['Relative_Speed'] = abs(data['Speed'] - data['Lead_Vehicle_Speed'])
+        data['TTC'] = data['Distance'] / data['Relative_Speed'].replace(0, np.inf)
+        self.carla_data = data
 
-        for i, plot in enumerate(plots):
-            if plot == 'brainwaves':
-                self.plot_brainwaves(axs[i])
-            elif plot == 'speed':
-                self.plot_vehicle_speed(axs[i])
-            elif plot == 'pupil':
-                self.plot_pupil_diameters(axs[i])
-            elif plot == 'heart':
-                self.plot_heart_rate(axs[i])
+    def save_data(self, data, filename):
+        """保存数据到CSV文件"""
+        # output_file_path = os.path.join(self.output_directory, filename)
+        data.to_csv(filename, index=False)
+        return filename
 
-        fig.tight_layout()
-        plt.show()
+    def trim_data(self):
+        """修剪数据以确保所有数据集具有相同的时间范围"""
+        start_time = max(self.eye_data['timestamp'].min(), self.carla_data['timestamp'].min(), self.eeg_data['timestamp'].min(),self.ecg_data['timestamp'].min())
+        end_time = min(self.eye_data['timestamp'].max(), self.carla_data['timestamp'].max(), self.eeg_data['timestamp'].max(),self.ecg_data['timestamp'].max())
+        self.eye_data = self.eye_data[(self.eye_data['timestamp'] >= start_time) & (self.eye_data['timestamp'] <= end_time)]
+        self.carla_data = self.carla_data[(self.carla_data['timestamp'] >= start_time) & (self.carla_data['timestamp'] <= end_time)]
+        self.eeg_data = self.eeg_data[(self.eeg_data['timestamp'] >= start_time) & (self.eeg_data['timestamp'] <= end_time)]
+        self.ecg_data = self.ecg_data[(self.ecg_data['timestamp'] >= start_time) & (self.ecg_data['timestamp'] <= end_time)]
 
-# Example usage
-# dm = DataManager('path_to_eye.csv', 'path_to_carla.csv', 'path_to_eeg.csv')
-# dv = DataVisualizer(dm)
-# dv.visualize()
+    def sync_data(self):
+        
+        merged_data = pd.merge(self.eye_data, self.carla_data, on='timestamp',how='outer')
+        merged_data = pd.merge(merged_data, self.eeg_data, on='timestamp',how='outer')
+
+        return merged_data
