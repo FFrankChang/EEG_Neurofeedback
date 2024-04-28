@@ -8,7 +8,7 @@ class DataVisualizer:
     def __init__(self, data_manager):
         self.data_manager = data_manager
 
-    def plot_arousal_and_brainwaves(self, ax):
+    def plot_arousal(self, ax):
         """Plot arousal and brainwaves on given axes."""
         data = self.data_manager.eeg_data
         data['timestamp'] = pd.to_datetime(data['timestamp'], unit='s').dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai').dt.tz_localize(None)
@@ -31,7 +31,7 @@ class DataVisualizer:
         ax2.legend(loc='upper right')
         ax.xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
 
-    def plot_speed_with_mode_switch(self, ax):
+    def plot_carla(self, ax):
         """Plot vehicle speeds and mode switches on given axes."""
         data = self.data_manager.carla_data
         data['timestamp'] = pd.to_datetime(data['timestamp'], unit='s').dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai').dt.tz_localize(None)
@@ -53,7 +53,7 @@ class DataVisualizer:
         ax2.set_yscale('log')
         ax2.legend(loc='upper right')
 
-    def plot_pupil_diameters(self, ax):
+    def plot_eye(self, ax):
         """Plot smoothed pupil diameters with event markers."""
         df = self.data_manager.eye_data
         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s').dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai').dt.tz_localize(None)
@@ -73,7 +73,7 @@ class DataVisualizer:
         ax.xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
 
 
-    def plot_heart_rate(self, ax):
+    def plot_heart(self, ax):
         """Plot heart rate over time with event markers and average heart rate between mode switches displayed as horizontal lines."""
         heart_rate_data = self.data_manager.heart_rate_data
         heart_rate_data['time'] = pd.to_datetime(heart_rate_data['timestamp'], unit='s').dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai').dt.tz_localize(None)
@@ -104,21 +104,21 @@ class DataVisualizer:
         for time in self.data_manager.collision_times:
             ax.axvline(x=time, color='black', linestyle='-.', label='Collision' if 'Collision' not in ax.get_legend_handles_labels()[1] else '')
 
-    def visualize(self, plots=['brainwaves', 'speed', 'pupil', 'heart']):
+    def visualize(self, plots=['arousal', 'carla', 'eye', 'heart']):
         """Visualize selected plots."""
-        fig, axs = plt.subplots(len(plots), 1, sharex=True,figsize=(10, 5 * len(plots)))
+        fig, axs = plt.subplots(len(plots), 1, sharex=True,figsize=(12, 2 * len(plots)))
         if len(plots) == 1:
             axs = [axs]  # Make sure axs is always a list
 
         for i, plot in enumerate(plots):
-            if plot == 'brainwaves':
-                self.plot_arousal_and_brainwaves(axs[i])
-            elif plot == 'speed':
-                self.plot_speed_with_mode_switch(axs[i])
-            elif plot == 'pupil':
-                self.plot_pupil_diameters(axs[i])
+            if plot == 'arousal':
+                self.plot_arousal(axs[i])
+            elif plot == 'carla':
+                self.plot_carla(axs[i])
+            elif plot == 'eye':
+                self.plot_eye(axs[i])
             elif plot == 'heart':
-                self.plot_heart_rate(axs[i])
+                self.plot_heart(axs[i])
 
         fig.tight_layout()
         plt.subplots_adjust(hspace=0.3)
