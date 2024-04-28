@@ -55,13 +55,18 @@ class VideoDataViewer(tk.Tk):
 
         self.fig, self.axs = plt.subplots(len(self.visualizations), 1, figsize=(10, 5 * len(self.visualizations)), sharex=True)
         if len(self.visualizations) == 1:
-            self.axs = [self.axs]  # Ensure axs is always a list
+            self.axs = [self.axs]
         for i, plot in enumerate(self.visualizations):
             getattr(self.visualizer, f'plot_{plot}')(self.axs[i])
         self.canvas = FigureCanvasTkAgg(self.fig, self)
         self.canvas.get_tk_widget().grid(row=0, column=1, rowspan=3, sticky='ewns')
 
         self.lines = [ax.axvline(self.start_time, color='lime') for ax in self.axs]
+        buffer_time = datetime.timedelta(seconds=1)
+        data_start_time = self.data_manager.eeg_data['timestamp'].min() - buffer_time
+        data_end_time = self.data_manager.eeg_data['timestamp'].max() + buffer_time
+        for ax in self.axs:
+            ax.set_xlim([data_start_time, data_end_time])
 
     def slider_moved(self, value):
         self.update_video(int(float(value)))
@@ -81,7 +86,7 @@ class VideoDataViewer(tk.Tk):
             self.slider.set(self.current_frame)
 
     def update_video(self, frame):
-        """更新视频帧并调整尺寸以适应界面"""
+        """更新视频帧并调整尺寸以适应界面，同时更新数据图中的标注线，不影响横轴范围"""
         self.cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
         ret, image = self.cap.read()
         if ret:
@@ -95,9 +100,18 @@ class VideoDataViewer(tk.Tk):
             time_offset = frame / self.fps
             current_frame_time = self.start_time + datetime.timedelta(seconds=time_offset)
             self.timestamp_label.config(text=current_frame_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])
+            min_time = self.data_manager.eeg_data['timestamp'].min()
+            max_time = self.data_manager.eeg_data['timestamp'].max()
+
+            if current_frame_time < min_time:
+                line_time = min_time
+            elif current_frame_time > max_time:
+                line_time = max_time
+            else:
+                line_time = current_frame_time
 
             for line in self.lines:
-                line.set_xdata([current_frame_time, current_frame_time])
+                line.set_xdata([line_time, line_time])
             self.fig.canvas.draw_idle()
 
     def on_close(self):
