@@ -9,10 +9,18 @@ from matplotlib.figure import Figure
 import datetime
 from matplotlib.lines import Line2D
 
-# 假设 DataManager 和 DataVisualizer 已经被定义并正确导入
 from data_manager import DataManager
 from data_visualizer import DataVisualizer
 
+def resize_frame(image, max_length=640):
+    height, width = image.shape[:2]
+    if max(height, width) > max_length:
+        scale = max_length / max(height, width)
+        new_height = int(height * scale)
+        new_width = int(width * scale)
+        resized = cv2.resize(image, (new_width, new_height), interpolation=cv2.INTER_AREA)
+        return resized
+    return image
 
 class VideoDataViewer(tk.Tk):
     def __init__(self, video_path, data_manager, start_time, visualizations):
@@ -20,17 +28,20 @@ class VideoDataViewer(tk.Tk):
         self.title("Video and Data Viewer")
         self.start_time = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S.%f")
         self.data_manager = data_manager
-        self.visualizer = DataVisualizer(data_manager)  # Ensure DataVisualizer is properly defined
+        self.visualizer = DataVisualizer(data_manager)  
         self.visualizations = visualizations
         
         self.cap = cv2.VideoCapture(video_path)
         self.fps = self.cap.get(cv2.CAP_PROP_FPS)
         self.total_frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
+        self.current_frame = 0  
         self.create_widgets()
-        self.update_video(0)
+        self.update_video(self.current_frame)
         self.protocol("WM_DELETE_WINDOW", self.on_close)
-        self.bind("<Escape>", lambda event: self.on_escape())
+        self.bind("<Escape>", lambda event: self.on_close())
+        self.bind("<Right>", self.next_frame)
+        self.bind("<Left>", self.previous_frame)
 
     def create_widgets(self):
         self.video_label = tk.Label(self)
@@ -54,11 +65,27 @@ class VideoDataViewer(tk.Tk):
 
     def slider_moved(self, value):
         self.update_video(int(float(value)))
+        
+    def next_frame(self, event):
+        """移动到下一帧"""
+        if self.current_frame < self.total_frames - 1:
+            self.current_frame += 1
+            self.update_video(self.current_frame)
+            self.slider.set(self.current_frame)
+
+    def previous_frame(self, event):
+        """移动到上一帧"""
+        if self.current_frame > 0:
+            self.current_frame -= 1
+            self.update_video(self.current_frame)
+            self.slider.set(self.current_frame)
 
     def update_video(self, frame):
+        """更新视频帧并调整尺寸以适应界面"""
         self.cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
         ret, image = self.cap.read()
         if ret:
+            image = resize_frame(image)  # 确保已经定义了resize_frame函数
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             img = Image.fromarray(image)
             imgtk = ImageTk.PhotoImage(image=img)
@@ -74,6 +101,7 @@ class VideoDataViewer(tk.Tk):
             self.fig.canvas.draw_idle()
 
     def on_close(self):
+        """关闭视频捕捉和窗口"""
         self.cap.release()
         self.destroy()
         self.quit()

@@ -20,7 +20,9 @@ video_path = os.path.join(data_dir, 'test_video.mp4')
 video_start_time = "2024-04-25 17:07:55.368227"
 
 dm = DataManager(eye_data_path, carla_data_path, arousal_data_path, raw_data_path)
+
 # dv = DataVisualizer(dm)
 # dv.visualize(['arousal', 'carla', 'eye', 'heart'])
+
 app = VideoDataViewer(video_path, dm, video_start_time, ['arousal','heart'])
 app.mainloop()
