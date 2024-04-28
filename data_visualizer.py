@@ -121,6 +121,6 @@ class DataVisualizer:
                 self.plot_heart(axs[i])
 
         fig.tight_layout()
-        plt.subplots_adjust(hspace=0.3)
+        # plt.subplots_adjust(hspace=0.3)
         plt.get_current_fig_manager().window.state('zoomed')
         plt.show()
