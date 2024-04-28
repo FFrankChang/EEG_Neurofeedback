@@ -1,13 +1,14 @@
 import pandas as pd
 import numpy as np
-import os
+from scipy.signal import find_peaks
 
 class DataManager:
     def __init__(self, eye_csv_path, carla_csv_path, eeg_csv_path, eeg_raw_path):
+        self.freq = 1000
         self.eye_data = self.load_and_process_eye_data(eye_csv_path)
         self.carla_data = self.load_and_process_carla_data(carla_csv_path)
         self.eeg_data = self.load_csv_data(eeg_csv_path, skiprows=0)
-        self.ecg_data = self.load_csv_data(eeg_raw_path)
+        self.load_and_process_ecg_data(eeg_raw_path)
         self.trim_data()
         self.load_event_data()
         self.sync_data = self.sync_data()
@@ -24,9 +25,24 @@ class DataManager:
         df.insert(storage_time_index, 'new_timestamp', df['timestamp'])
         df.drop(columns=['StorageTime', 'timestamp','ID'], inplace=True)
         df.rename(columns={'new_timestamp': 'timestamp'}, inplace=True)
-        
         return df
     
+    def load_and_process_ecg_data(self, ecg_csv_path):
+        """Load ECG data and calculate heart rate."""
+        self.ecg_data = self.load_csv_data(ecg_csv_path)
+        self.calculate_heart_rate()
+
+    def calculate_heart_rate(self):
+        """Calculate heart rate from ECG data and store it with timestamps."""
+        ecg_values = self.ecg_data['BIP 01'].values
+        peaks, _ = find_peaks(ecg_values, distance=self.freq / 2)  
+        rr_intervals = np.diff(peaks) / self.freq 
+
+        heart_rate = 60 / rr_intervals
+        process_data = self.ecg_data.copy()
+        heart_rate_times = process_data['timestamp'].iloc[peaks][1:]  # Skipping the first peak since we use diff
+        self.heart_rate_data = pd.DataFrame({'timestamp': heart_rate_times, 'heart_rate': heart_rate})
+
     def load_event_data(self):
         """Load mode switch and collision events."""
         event_data = self.carla_data.copy()
@@ -74,6 +90,7 @@ class DataManager:
         self.carla_data = self.carla_data[(self.carla_data['timestamp'] >= start_time) & (self.carla_data['timestamp'] <= end_time)]
         self.eeg_data = self.eeg_data[(self.eeg_data['timestamp'] >= start_time) & (self.eeg_data['timestamp'] <= end_time)]
         self.ecg_data = self.ecg_data[(self.ecg_data['timestamp'] >= start_time) & (self.ecg_data['timestamp'] <= end_time)]
+        self.heart_rate_data = self.heart_rate_data[(self.heart_rate_data['timestamp'] >= start_time) & (self.heart_rate_data['timestamp'] <= end_time)]
 
     def sync_data(self):
         

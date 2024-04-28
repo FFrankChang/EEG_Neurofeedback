@@ -75,38 +75,27 @@ class DataVisualizer:
 
     def plot_heart_rate(self, ax):
         """Plot heart rate over time with event markers and average heart rate between mode switches displayed as horizontal lines."""
-        ecg_values = self.data_manager.ecg_data['BIP 01'].values
-        peaks, _ = find_peaks(ecg_values, distance=1000 / 2)
-        self.data_manager.ecg_data['time'] = pd.to_datetime(self.data_manager.ecg_data['timestamp'], unit='s').dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai').dt.tz_localize(None)
+        heart_rate_data = self.data_manager.heart_rate_data
+        heart_rate_data['time'] = pd.to_datetime(heart_rate_data['timestamp'], unit='s').dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai').dt.tz_localize(None)
 
-        heart_rate_times = self.data_manager.ecg_data['time'].iloc[peaks]  # Use full range of peaks
-        rr_intervals = np.diff(peaks) / 1000
-        heart_rate = 60 / rr_intervals
-        heart_rate_times = heart_rate_times[1:]  # Adjust time points to match heart rate data size right before plotting
-
-        ax.plot(heart_rate_times, heart_rate, label='Heart Rate', color='cornflowerblue', linewidth=0.5)
-
-        mode_times = self.data_manager.mode_times
-        if len(mode_times) > 0:
-            all_times = [heart_rate_times.iloc[0]] + mode_times + [heart_rate_times.iloc[-1]]
-        else:
-            all_times = [heart_rate_times.iloc[0], heart_rate_times.iloc[-1]]
+        ax.plot(heart_rate_data['time'], heart_rate_data['heart_rate'], label='Heart Rate', color='cornflowerblue', linewidth=0.5)
 
         # Compute and draw horizontal lines for average heart rate for each segment
-        for start, end in zip(all_times[:-1], all_times[1:]):
-            mask = (heart_rate_times >= start) & (heart_rate_times < end)
-            segment_hr = heart_rate[mask]
-            if len(segment_hr) > 0:
-                avg_hr = np.mean(segment_hr)
-                ax.hlines(avg_hr, start, end, colors='blue', linewidth=1, linestyles='--',alpha=0.5, label='Average HR' if 'Average HR' not in ax.get_legend_handles_labels()[1] else '')
-        
+        for start, end in zip([heart_rate_data['time'].iloc[0]] + self.data_manager.mode_times, self.data_manager.mode_times + [heart_rate_data['time'].iloc[-1]]):
+            mask = (heart_rate_data['time'] >= start) & (heart_rate_data['time'] < end)
+            segment_hr = heart_rate_data['heart_rate'][mask]
+            if not segment_hr.empty:
+                avg_hr = segment_hr.mean()
+                ax.hlines(avg_hr, start, end, colors='blue', linewidth=1, linestyles='--', alpha=0.5, label='Average HR' if 'Average HR' not in ax.get_legend_handles_labels()[1] else '')
+
         ax.xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
-        self.plot_event_markers(ax)
+        self.plot_event_markers(ax)  # Assuming you have this method to plot mode switches and collisions
 
         ax.set_xlabel('Time')
         ax.set_ylabel('Heart Rate (beats per minute)')
         ax.set_title('Heart Rate Over Time')
         ax.legend()
+
 
     def plot_event_markers(self,ax):
         """Plot event markers for mode switched and collisions."""
