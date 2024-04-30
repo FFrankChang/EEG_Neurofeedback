@@ -6,46 +6,64 @@ import time
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-# 初始化pygame的混音器模块
+# Initialize pygame mixer module
 pygame.mixer.init()
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-audio_file = os.path.join(current_dir, "one_minute_beeps.wav")
+audio_file = os.path.join(current_dir, "heartbeat.mp3")
 
-# 全局变量设置初始音量和音量历史
-loudness = 0.1
+# Global variables for volume settings and history
+base_arousal = 0.09 # Threshold for the minimum arousal value to play sound
+loudness = 0
+arousal_history = []  # History of raw arousal values
 loudness_history = []
+smoothed_loudness_history = []  # History of smoothed loudness values
 
-# 函数：调整音量
+# Function to adjust volume based on smoothed loudness
 def adjust_volume(arousal):
     global loudness
-    loudness = arousal  # 直接将接收到的arousal值作为音量
-    pygame.mixer.music.set_volume(loudness)
-    loudness_history.append(loudness)  # 添加当前音量到历史记录中
-    print(f"当前音量：{round(loudness, 2)}")
+    arousal_history.append(arousal)  # Append current arousal to history
 
-# 函数：绘制音量历史数据的折线图
-def plot_loudness():
+    if arousal < base_arousal:
+        loudness = 0  # Set volume to 0 if arousal is below the threshold
+    elif arousal > 1:
+        loudness = 1  # Set volume to max if arousal is greater than 1
+    else:
+        loudness = arousal - base_arousal  # Adjust volume based on arousal
+
+    loudness_history.append(loudness)
+    # Compute the average loudness over the last 5 seconds (assuming a frequency of data receipt)
+    window_size = 5  # seconds
+    if len(loudness_history) > window_size:
+        smoothed_loudness = sum(loudness_history[-window_size:]) / window_size
+    else:
+        smoothed_loudness = sum(loudness_history) / len(loudness_history)
+
+    smoothed_loudness_history.append(smoothed_loudness)
+    pygame.mixer.music.set_volume(smoothed_loudness)
+    print(f"当前音量：{round(smoothed_loudness, 2)}")
+
+# Function to plot arousal history graph
+def plot_arousal():
     fig, ax = plt.subplots()
     max_points = 100
 
     def update(frame):
         ax.clear()
-        if len(loudness_history) > max_points:
-            plot_data = loudness_history[-max_points:]
+        if len(arousal_history) > max_points:
+            plot_data = arousal_history[-max_points:]
         else:
-            plot_data = loudness_history
-        ax.plot(plot_data, label='Loudness')
-        ax.set_ylim(0, 1)
-        ax.set_title("Real-Time Loudness Level")
+            plot_data = arousal_history
+        ax.plot(plot_data, label='Arousal')
+        ax.set_title("Real-Time Arousal Level")
         ax.set_xlabel("Time")
-        ax.set_ylabel("Loudness")
+        ax.set_ylabel("Arousal")
         ax.legend(loc='upper right')
 
     ani = FuncAnimation(fig, update, interval=100)
     plt.show()
 
-# 函数：接收音量调节数据
+# Function to receive volume adjustment data
 def receive_volume_data(sock):
     while True:
         data, addr = sock.recvfrom(1024)
@@ -54,7 +72,7 @@ def receive_volume_data(sock):
             arousal_value = float(message.split(":")[1])
             adjust_volume(arousal_value)
 
-# 函数：音频播放控制
+# Function to control audio playback
 def control_audio(sock):
     while True:
         data, addr = sock.recvfrom(1024)
@@ -79,27 +97,27 @@ def control_audio(sock):
             print("音频停止")
             break
 
-# 主函数
+# Main function
 def main():
     pygame.mixer.music.load(audio_file)
     pygame.mixer.music.set_volume(loudness)
-    pygame.mixer.music.play(-1)  
+    # pygame.mixer.music.play(-1)  
 
-    # 设置两个端口和套接字
+    # Set up two ports and sockets
     volume_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    volume_sock.bind(('0.0.0.0', 12345))  # 用于音量调节的端口
+    volume_sock.bind(('0.0.0.0', 12345))  # Port for volume adjustment
 
     control_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    control_sock.bind(('0.0.0.0', 12346))  # 用于控制播放状态的端口
+    control_sock.bind(('0.0.0.0', 12346))  # Port for playback control
 
-    # 创建并启动线程
+    # Create and start threads
     volume_thread = threading.Thread(target=receive_volume_data, args=(volume_sock,), daemon=True)
     volume_thread.start()
 
     control_thread = threading.Thread(target=control_audio, args=(control_sock,), daemon=True)
     control_thread.start()
 
-    plot_thread = threading.Thread(target=plot_loudness, daemon=True)
+    plot_thread = threading.Thread(target=plot_arousal, daemon=True)
     plot_thread.start()
 
     try:
