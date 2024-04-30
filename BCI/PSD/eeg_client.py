@@ -17,8 +17,7 @@ def get_channel_names_from_info(info):
     for channel in root.find('desc').find('channels').findall('channel'):
         name = channel.find('label').text
         channel_type = channel.find('type').text
-        if channel_type.upper() == 'EEG':
-            channel_names.append(name)
+        channel_names.append(name)
     return channel_names
 
 # Resolve stream and create inlet
@@ -37,8 +36,8 @@ data_directory = os.path.join(base_path, 'data')
 if not os.path.exists(data_directory):
     os.makedirs(data_directory)
 
-ex_type = 'pre'
-# ex_type = 'final'
+# ex_type = 'pre'
+ex_type = 'final'
 raw_data_file = os.path.join(data_directory, f'eegraw_{current_date_time}_{ex_type}.csv')
 processed_data_file = os.path.join(data_directory, f'psd_{current_date_time}_{ex_type}.csv')
 udp_ip = "localhost"
