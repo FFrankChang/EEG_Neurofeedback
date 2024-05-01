@@ -16,7 +16,6 @@ def get_channel_names_from_info(info):
     channel_names = []
     for channel in root.find('desc').find('channels').findall('channel'):
         name = channel.find('label').text
-        channel_type = channel.find('type').text
         channel_names.append(name)
     return channel_names
 
