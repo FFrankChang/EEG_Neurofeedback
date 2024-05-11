@@ -34,8 +34,8 @@ bands = {
 # 开始计算和保存
 with open(output_file, 'w', newline='') as file:
     writer = csv.writer(file)
-    header = ['timestamp'] + [f'{ch}_arousal' for ch in channels]
-    writer.writerow(header)
+    header = ['timestamp'] + [f'{ch}_arousal' for ch in channels] + ['mean_arousal']
+    writer.writerow(header)  # 写入头部信息
 
     # 类似实时处理，应用滑动窗口滤波
     for start in range(0, len(data) - window_size + 1, step_size):
@@ -46,12 +46,15 @@ with open(output_file, 'w', newline='') as file:
         filtered_data = bandpass_filter(window_data.values)
         timestamp = data.iloc[end - 1]['timestamp']  # 使用窗口最后一个样本的时间戳
         row = [timestamp]
-        
-        # 计算每个通道的arousal
+        arousal_values = []  # 存储当前窗口的所有 arousal 值
+        # 计算每个通道的 arousal
         for i, ch_data in enumerate(filtered_data.T):
             f, psd = welch(ch_data, fs=sfreq, nperseg=512)
             band_psd = {band: np.mean(psd[(f >= low) & (f <= high)]) for band, (low, high) in bands.items()}
             arousal = (band_psd['alpha'] + band_psd['beta']) / (band_psd['theta'] + band_psd['delta'])
             row.append(arousal)
-        
-        writer.writerow(row)
+            arousal_values.append(arousal)
+
+        mean_arousal = np.mean(arousal_values)  # 计算 mean_arousal
+        row.append(mean_arousal)  # 添加 mean_arousal 到行
+        writer.writerow(row)  # 写入行数据到 CSV 文件
