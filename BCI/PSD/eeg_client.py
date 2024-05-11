@@ -43,13 +43,13 @@ udp_ip = "localhost"
 udp_port = 12345
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 bands = {
-    'delta': (1, 3),
+    'delta': (0.5, 3),
     'theta': (4, 7),
     'alpha': (8, 12),
-    'beta': (13, 30)
+    'beta': (15, 30)
 }
 
-def bandpass_filter(data, lowcut=1.0, highcut=40.0, fs=sfreq, order=5):
+def bandpass_filter(data, lowcut=0.5, highcut=40.0, fs=sfreq, order=4):
     nyq = 0.5 * fs
     low = lowcut / nyq
     high = highcut / nyq
