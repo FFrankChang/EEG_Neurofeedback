@@ -20,10 +20,10 @@ class DataVisualizer:
 
         # ax2 = ax.twinx()
         # colors = ['blue', 'green', 'purple', 'gold']
-        # brainwave_columns = ['alpha_avg', 'beta_avg', 'theta_avg', 'delta_avg'] 
+        # brainwave_columns = ['F7_arousal','F8_arousal','P7_arousal','P8_arousal'] 
         # for idx, column in enumerate(brainwave_columns):
-        #     ax2.plot(data['timestamp'], data[column], label=column, alpha=0.2, color=colors[idx], linewidth=0.5)
-        # ax2.set_ylabel('Brain Wave Averages')
+        #     ax2.plot(data['timestamp'], data[column], label=column, alpha=0.1, color=colors[idx], linewidth=0.5)
+        # ax2.set_ylabel('Single channel')
 
         self.plot_event_markers(ax)
 

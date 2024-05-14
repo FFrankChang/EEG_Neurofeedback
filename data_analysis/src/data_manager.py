@@ -35,8 +35,15 @@ class DataManager:
             self.trim_data()
 
     def load_eeg_data(self, file_path):
-        """Loads EEG data."""
+        """Loads EEG data and computes additional arousal columns."""
         self.eeg_data = pd.read_csv(file_path)
+        if 'F7_alpha' in self.eeg_data.columns:
+            for channel in ['F7', 'F8', 'P7', 'P8']:
+                alpha_col = f'{channel}_alpha'
+                beta_col = f'{channel}_beta'
+                theta_col = f'{channel}_theta'
+                delta_col = f'{channel}_delta'
+                self.eeg_data[f'{channel}_arousal'] = (self.eeg_data[alpha_col] + self.eeg_data[beta_col]) / (self.eeg_data[theta_col] + self.eeg_data[delta_col])
         if self.data_ready():
             self.trim_data()
 
