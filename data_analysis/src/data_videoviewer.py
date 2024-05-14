@@ -2,10 +2,11 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 import cv2
-import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import datetime
+import pytesseract
+import re
 from data_visualizer import DataVisualizer
 
 def resize_frame(image, max_length=640):
@@ -19,15 +20,25 @@ def resize_frame(image, max_length=640):
     return image
 
 class VideoDataViewer(tk.Tk):
-    def __init__(self, video_path, data_manager, start_time, visualizations):
+    def __init__(self, video_path, data_manager, visualizations, start_time=None):
         super().__init__()
         self.title("Video and Data Viewer")
-        self.start_time = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S.%f")
         self.data_manager = data_manager
         self.visualizer = DataVisualizer(data_manager)
         self.visualizations = visualizations
         
         self.cap = cv2.VideoCapture(video_path)
+        if not self.cap.isOpened():
+            raise ValueError("Error opening video file")
+        
+        if start_time is None:
+            self.start_time = self.extract_start_time()
+        else:
+            if isinstance(start_time, str):
+                self.start_time = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S.%f")
+            else:
+                self.start_time = start_time
+
         self.fps = self.cap.get(cv2.CAP_PROP_FPS)
         self.total_frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
@@ -39,6 +50,24 @@ class VideoDataViewer(tk.Tk):
         self.bind("<Right>", self.next_frame)
         self.bind("<Left>", self.previous_frame)
 
+    def extract_start_time(self):
+        ret, frame = self.cap.read()
+        if ret:
+            text = pytesseract.image_to_string(frame, config='--oem 3 --psm 6')
+            date_pattern = r'\d{4}-\d{2}-\d{2}'
+            time_pattern = r'\d{2}:\d{2}:\d{2}:\d{3}'
+            date_match = re.search(date_pattern, text)
+            time_match = re.search(time_pattern, text)
+            if date_match and time_match:
+                formatted_time = time_match.group(0)[:-4] + '.' + time_match.group(0)[-3:]
+                start_time_str = f"{date_match.group(0)} {formatted_time}"
+                return datetime.datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S.%f")
+            else:
+                raise ValueError("Failed to extract date and time from video frame")
+        else:
+            raise ValueError("Failed to read the first frame")
+        return None
+    
     def create_widgets(self):
         self.video_label = tk.Label(self)
         self.video_label.grid(row=0, column=0, sticky='ewns')

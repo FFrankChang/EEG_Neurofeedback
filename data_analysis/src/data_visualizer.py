@@ -18,17 +18,17 @@ class DataVisualizer:
         ax.set_title('Brain EEG Averages with Arousal Highlighted')
         ax.grid(True)
 
-        ax2 = ax.twinx()
-        colors = ['blue', 'green', 'purple', 'gold']
-        brainwave_columns = ['alpha_avg', 'beta_avg', 'theta_avg', 'delta_avg']  # Ensure these columns exist in your data
-        for idx, column in enumerate(brainwave_columns):
-            ax2.plot(data['timestamp'], data[column], label=column, alpha=0.2, color=colors[idx], linewidth=0.5)
-        ax2.set_ylabel('Brain Wave Averages')
+        # ax2 = ax.twinx()
+        # colors = ['blue', 'green', 'purple', 'gold']
+        # brainwave_columns = ['alpha_avg', 'beta_avg', 'theta_avg', 'delta_avg'] 
+        # for idx, column in enumerate(brainwave_columns):
+        #     ax2.plot(data['timestamp'], data[column], label=column, alpha=0.2, color=colors[idx], linewidth=0.5)
+        # ax2.set_ylabel('Brain Wave Averages')
 
         self.plot_event_markers(ax)
 
         ax.legend(loc='upper left')
-        ax2.legend(loc='upper right')
+        # ax2.legend(loc='upper right')
         ax.xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
 
     def plot_carla(self, ax):
