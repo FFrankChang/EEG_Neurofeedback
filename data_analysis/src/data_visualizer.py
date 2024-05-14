@@ -1,18 +1,18 @@
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
-from scipy.signal import find_peaks
 import pandas as pd
-import numpy as np
 
 class DataVisualizer:
     def __init__(self, data_manager):
         self.data_manager = data_manager
 
+
     def plot_arousal(self, ax):
-        """Plot arousal and brainwaves on given axes."""
+        if self.data_manager.eeg_data is None:
+            raise ValueError("EEG data has not been loaded.")
         data = self.data_manager.eeg_data
         data['timestamp'] = pd.to_datetime(data['timestamp'], unit='s').dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai').dt.tz_localize(None)
-        ax.plot(data['timestamp'], data['arousal'], 'lightcoral', label='arousal', linewidth=1)
+        ax.plot(data['timestamp'], data['arousal'], 'lightcoral', label='Arousal', linewidth=1)
         ax.set_ylabel('Arousal')
         ax.set_xlabel('Time')
         ax.set_title('Brain EEG Averages with Arousal Highlighted')
@@ -32,7 +32,8 @@ class DataVisualizer:
         ax.xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
 
     def plot_carla(self, ax):
-        """Plot vehicle speeds and mode switches on given axes."""
+        if self.data_manager.carla_data is None:
+            raise ValueError("Carla data has not been loaded.")
         data = self.data_manager.carla_data
         data['timestamp'] = pd.to_datetime(data['timestamp'], unit='s').dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai').dt.tz_localize(None)
         ax.plot(data['timestamp'], data['Speed'], label='Main Vehicle Speed', color='mediumseagreen', linestyle=':', alpha=0.5)
@@ -54,10 +55,10 @@ class DataVisualizer:
         ax2.legend(loc='upper right')
 
     def plot_eye(self, ax):
-        """Plot smoothed pupil diameters with event markers."""
+        if self.data_manager.eye_data is None:
+            raise ValueError("Eye data has not been loaded.")
         df = self.data_manager.eye_data
         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s').dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai').dt.tz_localize(None)
-
         df['smoothed_left'] = df['smarteye|LeftPupilDiameter'].rolling(window=10, center=True).mean()
         df['smoothed_right'] = df['smarteye|RightPupilDiameter'].rolling(window=10, center=True).mean()
 
@@ -72,9 +73,9 @@ class DataVisualizer:
         ax.legend(loc='upper left')
         ax.xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
 
-
     def plot_heart(self, ax):
-        """Plot heart rate over time with event markers and average heart rate between mode switches displayed as horizontal lines."""
+        if self.data_manager.heart_rate_data is None:
+            raise ValueError("Heart rate data has not been loaded.")
         heart_rate_data = self.data_manager.heart_rate_data
         heart_rate_data['time'] = pd.to_datetime(heart_rate_data['timestamp'], unit='s').dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai').dt.tz_localize(None)
 
@@ -89,36 +90,34 @@ class DataVisualizer:
                 ax.hlines(avg_hr, start, end, colors='blue', linewidth=1, linestyles='--', alpha=0.5, label='Average HR' if 'Average HR' not in ax.get_legend_handles_labels()[1] else '')
 
         ax.xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
-        self.plot_event_markers(ax)  # Assuming you have this method to plot mode switches and collisions
+        self.plot_event_markers(ax)
 
         ax.set_xlabel('Time')
         ax.set_ylabel('Heart Rate (beats per minute)')
         ax.set_title('Heart Rate Over Time')
         ax.legend()
 
-
-    def plot_event_markers(self,ax):
+    def plot_event_markers(self, ax):
         """Plot event markers for mode switched and collisions."""
-        for time in self.data_manager.mode_times:
-            ax.axvline(x=time, color='red', linestyle='--', label='Mode Switched' if 'Mode Switched' not in ax.get_legend_handles_labels()[1] else '')
-        for time in self.data_manager.collision_times:
-            ax.axvline(x=time, color='black', linestyle='-.', label='Collision' if 'Collision' not in ax.get_legend_handles_labels()[1] else '')
+        if self.data_manager.mode_times:
+            for time in self.data_manager.mode_times:
+                ax.axvline(x=time, color='red', linestyle='--', label='Mode Switched' if 'Mode Switched' not in ax.get_legend_handles_labels()[1] else '')
+        if self.data_manager.collision_times:
+            for time in self.data_manager.collision_times:
+                ax.axvline(x=time, color='black', linestyle='-.', label='Collision' if 'Collision' not in ax.get_legend_handles_labels()[1] else '')
 
     def visualize(self, plots=['arousal', 'carla', 'eye', 'heart']):
-        """Visualize selected plots."""
-        fig, axs = plt.subplots(len(plots), 1, sharex=True,figsize=(12, 2 * len(plots)))
+        """Visualize selected plots only if data is loaded."""
+        fig, axs = plt.subplots(len(plots), 1, figsize=(12, 2 * len(plots)))
+        
         if len(plots) == 1:
-            axs = [axs]  # Make sure axs is always a list
-
+            axs = [axs]
         for i, plot in enumerate(plots):
-            if plot == 'arousal':
-                self.plot_arousal(axs[i])
-            elif plot == 'carla':
-                self.plot_carla(axs[i])
-            elif plot == 'eye':
-                self.plot_eye(axs[i])
-            elif plot == 'heart':
-                self.plot_heart(axs[i])
+            plot_func = getattr(self, f'plot_{plot}', None)
+            if plot_func :
+                plot_func(axs[i])
+            else:
+                raise ValueError(f"{plot.capitalize()} data has not been loaded, cannot visualize.")
 
         fig.tight_layout()
         plt.subplots_adjust(hspace=0.3)

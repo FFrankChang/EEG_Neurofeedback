@@ -53,7 +53,7 @@ class VideoDataViewer(tk.Tk):
         self.timestamp_label = tk.Label(self, text="")
         self.timestamp_label.grid(row=2, column=0, sticky='ew')
 
-        self.fig, self.axs = plt.subplots(len(self.visualizations), 1, figsize=(10, 5 * len(self.visualizations)), sharex=True)
+        self.fig, self.axs = plt.subplots(len(self.visualizations), 1, figsize=(10, 3 * len(self.visualizations)), sharex=True)
         if len(self.visualizations) == 1:
             self.axs = [self.axs]
         for i, plot in enumerate(self.visualizations):
