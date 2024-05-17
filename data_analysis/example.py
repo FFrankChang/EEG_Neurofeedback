@@ -10,6 +10,7 @@ from data_visualizer import DataVisualizer
 from data_videoviewer import VideoDataViewer
 
 def auto_load_data(data_manager, directory):
+    video_path = ''
     for file in os.listdir(directory):
         file_path = os.path.join(directory, file)
         if 'Recording' in file:
