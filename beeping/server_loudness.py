@@ -14,8 +14,9 @@ audio_file = os.path.join(current_dir, "heartbeat.mp3")
 tor_audio_file = os.path.join(current_dir, "TOR.mp3")
 
 # Global variables for volume settings and history
-base_arousal = 0.09 # Threshold for the minimum arousal value to play sound
+base_arousal = 0.0 # Threshold for the minimum arousal value to play sound
 loudness = 0
+base_volume = 0.3
 arousal_history = []  # History of raw arousal values
 loudness_history = []
 smoothed_loudness_history = []  # History of smoothed loudness values
@@ -106,7 +107,7 @@ def control_audio(sock):
 # Main function
 def main():
     pygame.mixer.music.load(audio_file)
-    pygame.mixer.music.set_volume(loudness)
+    pygame.mixer.music.set_volume(loudness+base_volume)
     # pygame.mixer.music.play(-1)  
 
     # Set up two ports and sockets
