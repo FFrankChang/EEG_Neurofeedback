@@ -11,6 +11,7 @@ pygame.mixer.init()
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 audio_file = os.path.join(current_dir, "heartbeat.mp3")
+tor_audio_file = os.path.join(current_dir, "TOR.mp3")
 
 # Global variables for volume settings and history
 base_arousal = 0.09 # Threshold for the minimum arousal value to play sound
@@ -81,10 +82,15 @@ def control_audio(sock):
         if command == "play":
             if not pygame.mixer.music.get_busy():
                 pygame.mixer.music.play(-1)
-                print("音频播放")
             else:
                 print("音频已经在播放中")
-
+                
+        elif command == "tor":
+            tor_channel = pygame.mixer.Channel(1) 
+            tor_sound = pygame.mixer.Sound(tor_audio_file)
+            tor_channel.play(tor_sound)
+            print("接管提示")
+            
         elif command == "pause":
             if pygame.mixer.music.get_busy():
                 pygame.mixer.music.pause()
