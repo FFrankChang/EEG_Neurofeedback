@@ -28,7 +28,10 @@ def send_file(server_ip, server_port, file_path):
 def select_files_and_send(server_ip, server_port):
     root = tk.Tk()
     root.withdraw()  
-    file_paths = filedialog.askopenfilenames()  
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    data_dir = os.path.join(script_dir, "data")
+    initial_dir = data_dir if os.path.exists(data_dir) else script_dir  
+    file_paths = filedialog.askopenfilenames(initialdir=initial_dir)  
     if file_paths:
         for file_path in file_paths:
             send_file(server_ip, server_port, file_path)
