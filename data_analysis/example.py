@@ -1,5 +1,7 @@
 import os
 import sys
+import tkinter as tk
+from tkinter import filedialog
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 src_dir = os.path.join(base_dir, 'src')
@@ -25,16 +27,21 @@ def auto_load_data(data_manager, directory):
             video_path = file_path
     return video_path
 
-test_data_folder = '20240512_03'
-data_dir = os.path.join(base_dir, '..', 'data', test_data_folder)
+def select_folder():
+    root = tk.Tk()
+    root.withdraw() 
+    default_data_dir = os.path.join(base_dir, '..', 'data')
+    folder_selected = filedialog.askdirectory(initialdir=default_data_dir)
+    return folder_selected
+
+data_dir = select_folder() 
 
 video_start_time = "2024-04-30 15:27:19.997"
 
 dm = DataManager()
 video_path = auto_load_data(dm, data_dir)
 
-# dv = DataVisualizer(dm)
-# dv.visualize(['arousal', 'carla', 'eye', 'heart'])
-
-app = VideoDataViewer(video_path, dm, ['arousal','heart'])
-app.mainloop()
+dv = DataVisualizer(dm)
+dv.visualize(['arousal', 'carla', 'eye', 'heart'])
+# app = VideoDataViewer(video_path, dm, ['arousal','heart'])
+# app.mainloop()
