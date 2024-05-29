@@ -16,10 +16,12 @@ tor_audio_file = os.path.join(current_dir, "TOR.mp3")
 # Global variables for volume settings and history
 base_arousal = 0.0 # Threshold for the minimum arousal value to play sound
 loudness = 0
-base_volume = 0.3
+base_volume = 0.05
 arousal_history = []  # History of raw arousal values
 loudness_history = []
 smoothed_loudness_history = []  # History of smoothed loudness values
+
+feedback_active = False  # Flag to control feedback activation
 
 # Function to adjust volume based on smoothed loudness
 def adjust_volume(arousal):
@@ -42,7 +44,10 @@ def adjust_volume(arousal):
         smoothed_loudness = sum(loudness_history) / len(loudness_history)
 
     smoothed_loudness_history.append(smoothed_loudness)
-    pygame.mixer.music.set_volume(smoothed_loudness)
+    if feedback_active:
+        pygame.mixer.music.set_volume(smoothed_loudness + base_volume)
+    else:
+        pygame.mixer.music.set_volume(0)
     print(f"当前音量：{round(smoothed_loudness, 2)}")
 
 # Function to plot arousal history graph
@@ -87,7 +92,7 @@ def control_audio(sock):
                 print("音频已经在播放中")
                 
         elif command == "tor":
-            tor_channel = pygame.mixer.Channel(1) 
+            tor_channel = pygame.mixer.Channel(1)
             tor_sound = pygame.mixer.Sound(tor_audio_file)
             tor_channel.play(tor_sound)
             print("接管提示")
@@ -108,7 +113,10 @@ def control_audio(sock):
 def main():
     pygame.mixer.music.load(audio_file)
     pygame.mixer.music.set_volume(loudness+base_volume)
-    # pygame.mixer.music.play(-1)  
+    
+    global feedback_active
+    feedback_mode = input("Enter feedback mode (0 for no feedback, 1 for feedback): ")
+    feedback_active = feedback_mode == "1"
 
     # Set up two ports and sockets
     volume_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
