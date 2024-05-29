@@ -3,7 +3,7 @@ import h5py
 import pandas as pd
 
 # 定义文件夹路径
-folder_path = r'E:\EEG_Neurofeedback\PNAS_data'
+folder_path = r'E:\Faller_et_al_2019_PNAS_EEG_Neurofeedback_VR_Flight'
 
 # 列出文件夹中所有的.mat文件
 mat_files = [f for f in os.listdir(folder_path) if f.endswith('.mat')]

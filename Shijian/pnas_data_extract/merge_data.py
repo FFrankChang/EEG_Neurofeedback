@@ -5,7 +5,7 @@ def merge_csv_files(folder_path):
     # 获取文件夹中的所有文件名
     all_files = os.listdir(folder_path)
     
-    # 找出所有_time.csv和_data.csv文件
+    # 找出所有_time.csv和_modified_data.csv文件
     time_files = [f for f in all_files if f.endswith('_time.csv')]
     data_files = [f for f in all_files if f.endswith('_data.csv')]
     
@@ -38,5 +38,5 @@ def merge_csv_files(folder_path):
         print(f"已合并: {merged_file_path}")
 
 # 调用函数，传入文件夹路径
-folder_path = 'your_folder_path_here'
+folder_path = 'E:\Faller_et_al_2019_PNAS_EEG_Neurofeedback_VR_Flight'
 merge_csv_files(folder_path)

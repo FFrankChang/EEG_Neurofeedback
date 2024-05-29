@@ -2,7 +2,7 @@ import os
 import pandas as pd
 
 # 指定需要搜索的文件夹路径
-folder_path = 'path/to/your/folder'
+folder_path = 'E:\Faller_et_al_2019_PNAS_EEG_Neurofeedback_VR_Flight'
 
 # 遍历文件夹中的所有文件
 for filename in os.listdir(folder_path):

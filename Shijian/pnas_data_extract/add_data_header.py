@@ -2,7 +2,7 @@ import os
 import pandas as pd
 
 # 设置文件夹路径
-folder_path = 'path_to_your_folder'
+folder_path = r'E:\Faller_et_al_2019_PNAS_EEG_Neurofeedback_VR_Flight'
 
 # 获取所有csv文件
 files = [f for f in os.listdir(folder_path) if f.endswith('.csv') and 'time' not in f]
@@ -30,8 +30,9 @@ for label_file, data_file in matched_files:
         if len(new_columns) == data_df.shape[1]:  # 确保列数匹配
             data_df.columns = new_columns
             # 保存修改后的数据文件
-            new_data_path = data_path.replace('_data', '_modified_data')
-            data_df.to_csv(new_data_path, index=False)
+            new_data_path = data_path.replace('_data', '_data_processed')
+            data_df.to_csv(data_path, index=False)
+            print(new_data_path)
         else:
             print(f"列数不匹配：{data_file}")
     else:

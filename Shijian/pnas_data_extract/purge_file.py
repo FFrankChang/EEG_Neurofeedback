@@ -20,5 +20,5 @@ def delete_csv_files(folder_path):
             print(f"无法删除文件: {file_path}. 错误: {e}")
 
 # 调用函数，传入文件夹路径
-folder_path = 'your_folder_path_here'
+folder_path = 'E:\Faller_et_al_2019_PNAS_EEG_Neurofeedback_VR_Flight'
 delete_csv_files(folder_path)
