@@ -12,7 +12,13 @@ class DataVisualizer:
             raise ValueError("EEG data has not been loaded.")
         data = self.data_manager.eeg_data
         data['timestamp'] = pd.to_datetime(data['timestamp'], unit='s').dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai').dt.tz_localize(None)
-        ax.plot(data['timestamp'], data['arousal'], 'lightcoral', label='Arousal', linewidth=1)
+
+
+        ax.plot(data['timestamp'], data['arousal'], 'red', label='Arousal', linewidth=1, alpha=0.2)
+
+        smoothed_arousal = data['arousal'].rolling(window=20, center=True).mean()
+        ax.plot(data['timestamp'], smoothed_arousal, 'lightcoral', label='Smoothed Arousal', linewidth=1)
+
         ax.set_ylabel('Arousal')
         ax.set_xlabel('Time')
         ax.set_title('Brain EEG Averages with Arousal Highlighted')
