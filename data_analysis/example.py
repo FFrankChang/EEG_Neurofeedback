@@ -32,6 +32,7 @@ def select_folder():
     root.withdraw() 
     default_data_dir = os.path.join(base_dir, '..', 'data')
     folder_selected = filedialog.askdirectory(initialdir=default_data_dir)
+    root.destroy()
     return folder_selected
 
 data_dir = select_folder() 
