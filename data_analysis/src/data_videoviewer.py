@@ -8,6 +8,8 @@ import datetime
 import pytesseract
 import re
 from data_visualizer import DataVisualizer
+import pandas as pd
+import os
 
 def resize_frame(image, max_length=640):
     height, width = image.shape[:2]
@@ -20,13 +22,18 @@ def resize_frame(image, max_length=640):
     return image
 
 class VideoDataViewer(tk.Tk):
-    def __init__(self, video_path, data_manager, visualizations, start_time=None):
+    def __init__(self, video_path, data_manager, visualizations, start_time=None, annotation_mode=False):
         super().__init__()
         self.title("Video and Data Viewer")
         self.data_manager = data_manager
         self.visualizer = DataVisualizer(data_manager)
         self.visualizations = visualizations
-        
+
+        self.annotation_mode = annotation_mode
+        self.annotations = []
+        self.video_path = video_path
+        self.video_directory = os.path.dirname(video_path)
+
         self.cap = cv2.VideoCapture(video_path)
         if not self.cap.isOpened():
             raise ValueError("Error opening video file")
@@ -49,6 +56,10 @@ class VideoDataViewer(tk.Tk):
         self.bind("<Escape>", lambda event: self.on_close())
         self.bind("<Right>", self.next_frame)
         self.bind("<Left>", self.previous_frame)
+        if self.annotation_mode:
+            self.bind("<space>", lambda event: self.record_annotation('high'))
+            self.bind("l", lambda event: self.record_annotation('low'))
+            self.bind("<Delete>", lambda event: self.delete_last_annotation())
 
     def extract_start_time(self):
         ret, frame = self.cap.read()
@@ -93,6 +104,25 @@ class VideoDataViewer(tk.Tk):
         for ax in self.axs:
             ax.set_xlim([data_start_time, data_end_time])
 
+        self.annotations_list = tk.Listbox(self)
+        self.annotations_list.grid(row=3, column=0, columnspan=2, sticky='ew')
+
+    def delete_last_annotation(self):
+        if self.annotations:
+            self.annotations.pop()  
+            self.update_annotations_list()
+
+    def record_annotation(self, label):
+        time_offset = self.current_frame / self.fps
+        current_frame_time = self.start_time + datetime.timedelta(seconds=time_offset)
+        self.annotations.append((current_frame_time, label))
+        self.update_annotations_list()
+
+    def update_annotations_list(self):
+        self.annotations_list.delete(0, tk.END)
+        for idx, (time, label) in enumerate(self.annotations):
+            self.annotations_list.insert(tk.END, f"{idx+1}. {time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]} [{label}]")
+    
     def slider_moved(self, value):
         self.update_video(int(float(value)))
         self.current_frame = int(float(value))
@@ -138,6 +168,12 @@ class VideoDataViewer(tk.Tk):
             self.fig.canvas.draw_idle()
 
     def on_close(self):
+        if self.annotation_mode:
+            timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+            filename = f"marker_{timestamp}.csv"
+            filepath = os.path.join(self.video_directory, filename)
+            df = pd.DataFrame(self.annotations, columns=['Time', 'Label'])
+            df.to_csv(filepath, index=False)
         self.cap.release()
         self.destroy()
         self.quit()

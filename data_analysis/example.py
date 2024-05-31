@@ -37,12 +37,12 @@ def select_folder():
 
 data_dir = select_folder() 
 
-video_start_time = "2024-04-30 15:27:19.997"
+video_start_time = "2024-05-28 15:20:55.925"
 
 dm = DataManager()
 video_path = auto_load_data(dm, data_dir)
 
 dv = DataVisualizer(dm)
-dv.visualize(['arousal', 'carla', 'eye', 'heart'])
-# app = VideoDataViewer(video_path, dm, ['arousal','heart'])
-# app.mainloop()
+# dv.visualize(['arousal', 'carla', 'eye', 'heart'])
+app = VideoDataViewer(video_path, dm, ['arousal','heart'],start_time=video_start_time,annotation_mode=True)
+app.mainloop()
