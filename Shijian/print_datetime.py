@@ -6,7 +6,7 @@ import os
 base_path = r'D:\Frank_Project\EEG_Neurofeedback\data'
 
 # 日期
-date_prefix = "20240523"
+date_prefix = "20240529_zyx"
 
 # 获取所有会话目录
 session_dirs = next(os.walk(base_path))[1]
