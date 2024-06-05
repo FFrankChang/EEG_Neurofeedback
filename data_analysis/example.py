@@ -17,7 +17,7 @@ def auto_load_data(data_manager, directory):
         file_path = os.path.join(directory, file)
         if 'Recording' in file:
             data_manager.load_eye_data(file_path)
-        elif 'carla' in file:
+        elif 'carla_2024' in file:
             data_manager.load_carla_data(file_path)
         elif 'eegraw' in file:
             data_manager.load_ecg_data(file_path)
@@ -43,6 +43,6 @@ dm = DataManager()
 video_path = auto_load_data(dm, data_dir)
 
 dv = DataVisualizer(dm)
-# dv.visualize(['arousal', 'carla', 'eye', 'heart'])
-app = VideoDataViewer(video_path, dm, ['arousal','heart'],start_time=video_start_time,annotation_mode=True)
-app.mainloop()
+dv.visualize(['arousal', 'carla', 'eye', 'heart'])
+# app = VideoDataViewer(video_path, dm, ['arousal','heart'],start_time=video_start_time,annotation_mode=True)
+# app.mainloop()
