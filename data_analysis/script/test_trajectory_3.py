@@ -22,7 +22,7 @@ gs = gridspec.GridSpec(2, 2, width_ratios=[20, 1], height_ratios=[3, 1])
 
 # Plot the trajectory in a larger subplot
 ax1 = fig.add_subplot(gs[0, 0])
-sc = ax1.scatter(data['Location_x'], data['Location_y'], c=TTC_numeric, cmap='viridis', s=10, edgecolor='none', alpha=0.5)
+sc = ax1.scatter(data['Location_x'], data['Location_y'], c=TTC_numeric, cmap='viridis', s=5, edgecolor='none', alpha=0.5)
 ax1.scatter(mode_switched_points['Location_x'], mode_switched_points['Location_y'], facecolors='none', edgecolors='b', s=50, label='Take Over')
 ax1.scatter(collision_points['Location_x'], collision_points['Location_y'], facecolors='none', edgecolors='red', s=50, label='Collision')
 
@@ -34,8 +34,9 @@ ax1.axhline(y=3011.25, color='grey', linestyle='-', linewidth=0.5)
 ax1.axhline(y=2996.25, color='grey', linestyle='-', linewidth=0.5)
 ax1.axhline(y=2992.5, color='grey', linestyle='-', linewidth=0.5)
 
+ax1.set_aspect('equal')
 ax1.set_ylabel('Location Y')
-ax1.legend()
+# ax1.legend()
 ax1.set_title('Dynamic Color Vehicle Trajectory Based on TTC')
 ax1.set_xlim(3000, 5000)
 ax1.invert_xaxis()
