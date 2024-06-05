@@ -5,7 +5,7 @@ import numpy as np
 
 def plot_trajectories(base_path, output_path, subject, model):
     fig, ax = plt.subplots(figsize=(10, 8))
-    colors = plt.cm.tab10(np.linspace(0, 1, 10))  # 使用jet颜色映射表，分配20种颜色
+    colors = plt.cm.tab10(np.linspace(0, 1, 10)) 
     color_idx = 0  # 颜色索引
 
     # 遍历基本路径下的文件夹

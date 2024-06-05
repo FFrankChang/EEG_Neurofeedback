@@ -14,7 +14,7 @@ results_df = pd.DataFrame(columns=columns)
 
 # Iterate through each directory in the base directory
 for folder in os.listdir(base_dir):
-    if 'syr' in folder.lower() and ('easy' in folder.lower() or 'hard' in folder.lower()):
+    if subject in folder.lower() and ('easy' in folder.lower() or 'hard' in folder.lower()):
         file_path = os.path.join(base_dir, folder, "carla_merged.csv")
         if os.path.exists(file_path):
             # Load the data
