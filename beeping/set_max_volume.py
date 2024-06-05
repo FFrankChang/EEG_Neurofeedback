@@ -9,7 +9,7 @@ pygame.mixer.init()
 current_dir = os.path.dirname(os.path.abspath(__file__))
 audio_path = os.path.join(current_dir, "long_heartbeat.mp3")
 sound = pygame.mixer.Sound(audio_path)
-sound.set_volume(1)  
+sound.set_volume(1) 
 
 # 开始循环播放音频
 sound.play(loops=-1)
