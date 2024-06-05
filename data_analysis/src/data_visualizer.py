@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 import pandas as pd
-
+import os
 class DataVisualizer:
     def __init__(self, data_manager):
         self.data_manager = data_manager
@@ -20,7 +20,6 @@ class DataVisualizer:
         ax.plot(data['timestamp'], smoothed_arousal, 'lightcoral', label='Smoothed Arousal', linewidth=1)
 
         ax.set_ylabel('Arousal')
-        ax.set_xlabel('Time')
         ax.set_title('Brain EEG Averages with Arousal Highlighted')
         ax.grid(True)
 
@@ -48,7 +47,6 @@ class DataVisualizer:
         self.plot_event_markers(ax)
 
         ax.set_title('Speed Over Time with TTC')
-        ax.set_xlabel('Time')
         ax.set_ylabel('Speed')
         ax.legend(loc='upper left')
         ax.grid(True)
@@ -73,7 +71,6 @@ class DataVisualizer:
         
         self.plot_event_markers(ax)
 
-        ax.set_xlabel('Time')
         ax.set_ylabel('Pupil Diameter')
         ax.set_title('Smoothed Pupil Diameter Over Time')
         ax.legend(loc='upper left')
@@ -98,7 +95,6 @@ class DataVisualizer:
         ax.xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
         self.plot_event_markers(ax)
 
-        ax.set_xlabel('Time')
         ax.set_ylabel('Heart Rate (beats per minute)')
         ax.set_title('Heart Rate Over Time')
         ax.legend()
@@ -114,7 +110,7 @@ class DataVisualizer:
 
     def visualize(self, plots=['arousal', 'carla', 'eye', 'heart']):
         """Visualize selected plots only if data is loaded."""
-        fig, axs = plt.subplots(len(plots), 1, figsize=(12, 2 * len(plots)))
+        fig, axs = plt.subplots(len(plots), 1, figsize=(18, 3 * len(plots)), sharex=True)
         
         if len(plots) == 1:
             axs = [axs]
@@ -124,8 +120,20 @@ class DataVisualizer:
                 plot_func(axs[i])
             else:
                 raise ValueError(f"{plot.capitalize()} data has not been loaded, cannot visualize.")
-
+        axs[-1].set_xlabel('Time') 
         fig.tight_layout()
-        plt.subplots_adjust(hspace=0.3)
+        plt.subplots_adjust(hspace=0.3, top=0.92)
+        fig.suptitle(self.data_manager.folder_name,fontweight='bold')
         plt.get_current_fig_manager().window.state('zoomed')
         plt.show()
+        return fig
+    
+    def save_figure(self, fig, path=None):
+        """Save the figure to the default directory or an additional path if provided."""
+        default_filename = os.path.join(self.data_manager.data_dir, self.data_manager.folder_name + '_overall.png')
+        fig.savefig(default_filename)
+        print(f"Figure saved to {default_filename}")
+        if path:
+            additional_filename = os.path.join(path, self.data_manager.folder_name + '_overall.png')
+            fig.savefig(additional_filename)
+            print(f"Figure also saved to {additional_filename}")

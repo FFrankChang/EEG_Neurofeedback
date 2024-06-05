@@ -29,20 +29,22 @@ def auto_load_data(data_manager, directory):
 
 def select_folder():
     root = tk.Tk()
-    root.withdraw() 
+    root.withdraw()
     default_data_dir = os.path.join(base_dir, '..', 'data')
     folder_selected = filedialog.askdirectory(initialdir=default_data_dir)
     root.destroy()
     return folder_selected
 
-data_dir = select_folder() 
+data_dir = select_folder()
+folder_name = os.path.basename(data_dir)
 
 video_start_time = "2024-05-28 15:20:55.925"
 
-dm = DataManager()
+dm = DataManager(data_dir)
 video_path = auto_load_data(dm, data_dir)
 
 dv = DataVisualizer(dm)
-dv.visualize(['arousal', 'carla', 'eye', 'heart'])
+fig = dv.visualize(['arousal', 'carla', 'eye', 'heart'])
+dv.save_figure(fig)
 # app = VideoDataViewer(video_path, dm, ['arousal','heart'],start_time=video_start_time,annotation_mode=True)
 # app.mainloop()

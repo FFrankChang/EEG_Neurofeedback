@@ -1,9 +1,11 @@
 import pandas as pd
 import numpy as np
 from scipy.signal import find_peaks
-
+import os
 class DataManager:
-    def __init__(self):
+    def __init__(self,data_dir):
+        self.data_dir = data_dir
+        self.folder_name =  os.path.basename(data_dir)
         self.freq = 1000
         self.eye_data = None
         self.carla_data = None
