@@ -40,7 +40,7 @@ def plot_trajectories(folder_paths, subject=None,scenario=None,output_path=None)
     plt.title(f'{subject}_{scenario}', fontweight='bold')
     if output_path:
         plt.savefig(os.path.join(output_path, f'{subject}_{scenario}_trajectory.png'))
-    plt.show()
+    # plt.show()
     plt.close(fig)
     
 
@@ -52,5 +52,5 @@ for i in range(5,11):
     # print(subject)
     hard_files = filter_folder_paths(csv_file_path,subject=subject,scenario='hard')
     easy_files = filter_folder_paths(csv_file_path,subject=subject,scenario='easy')
-    plot_trajectories(easy_files,subject=subject,scenario='easy')#,output_path=pic_path)
-    plot_trajectories(hard_files,subject=subject,scenario='hard')#,output_path=pic_path)
+    plot_trajectories(easy_files,subject=subject,scenario='easy',output_path=pic_path)
+    plot_trajectories(hard_files,subject=subject,scenario='hard',output_path=pic_path)
