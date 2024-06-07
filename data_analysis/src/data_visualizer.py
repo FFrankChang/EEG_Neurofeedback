@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 import pandas as pd
@@ -43,7 +45,7 @@ class DataVisualizer:
         data['timestamp'] = pd.to_datetime(data['timestamp'], unit='s').dt.tz_localize('UTC').dt.tz_convert('Asia/Shanghai').dt.tz_localize(None)
         ax.plot(data['timestamp'], data['Speed'], label='Main Vehicle Speed', color='mediumseagreen', linestyle=':', alpha=0.5)
         ax.plot(data['timestamp'], data['Lead_Vehicle_Speed'], label='Lead Vehicle Speed', color='royalblue', linestyle=':', alpha=0.5)
-
+        self.plot_deceleration_periods(ax)
         self.plot_event_markers(ax)
 
         ax.set_title('Speed Over Time with TTC')
@@ -108,13 +110,12 @@ class DataVisualizer:
             for time in self.data_manager.collision_times:
                 ax.axvline(x=time, color='black', linestyle='-.', label='Collision' if 'Collision' not in ax.get_legend_handles_labels()[1] else '')
     
-    # def plot_deceleration_periods(self, ax):
-    #     """Highlights deceleration periods on the plot."""
-    #     for start, end in self.data_manager.deceleration_periods:
-    #         start = pd.to_datetime(start, unit='s').tz_localize('UTC').tz_convert('Asia/Shanghai').tz_localize(None)
-    #         end = pd.to_datetime(end, unit='s').tz_localize('UTC').tz_convert('Asia/Shanghai').tz_localize(None)
-    #         print(start,end)
-    #         ax.axvspan(start, end, color='grey')
+    def plot_deceleration_periods(self, ax):
+        """Highlights deceleration periods on the plot."""
+        for start, end in self.data_manager.deceleration_periods:
+            start = pd.to_datetime(start, unit='s').tz_localize('UTC').tz_convert('Asia/Shanghai').tz_localize(None)
+            end = pd.to_datetime(end, unit='s').tz_localize('UTC').tz_convert('Asia/Shanghai').tz_localize(None)
+            ax.axvspan(start, end, color='grey',alpha = 0.3)
 
     def visualize(self, plots=['arousal', 'carla', 'eye', 'heart']):
         """Visualize selected plots only if data is loaded."""

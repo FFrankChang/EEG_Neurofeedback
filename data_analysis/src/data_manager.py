@@ -68,12 +68,12 @@ class DataManager:
         self.heart_rate_data = pd.DataFrame({'timestamp': heart_rate_times, 'heart_rate': heart_rate})
 
     def detect_deceleration_periods(self):
-        """Detects continuous deceleration periods based on speed thresholds."""
+        """Detects continuous deceleration periods based on speed thresholds."""    
         if self.carla_data is not None:
             carla_data = self.carla_data
             carla_data['Mode_Switched'] = carla_data['Mode_Switched'].fillna("No")
             switch_indices = carla_data.index[carla_data['Mode_Switched'].eq("Yes")]
-            print()
+            temp_periods = []
             for index in switch_indices:
                 subset = carla_data.loc[index:].reset_index(drop=True)
                 speed_less_than_75 = subset['Lead_Vehicle_Speed'] < 75
@@ -87,10 +87,21 @@ class DataManager:
                     elif not is_below_threshold and in_deceleration:
                         in_deceleration = False
                         if start_time:
-                            self.deceleration_periods.append((start_time, subset['timestamp'][i-1]))
+                            temp_periods.append((start_time, subset['timestamp'][i-1]))
                 
                 if in_deceleration and start_time:
-                    self.deceleration_periods.append((start_time, subset['timestamp'].iloc[-1]))
+                    temp_periods.append((start_time, subset['timestamp'].iloc[-1]))
+
+        if temp_periods:
+            merged_periods = [temp_periods[0]]
+            for start, end in temp_periods[1:]:
+                last_end = merged_periods[-1][1]
+                if start - last_end <= 0.5:
+                    merged_periods[-1] = (merged_periods[-1][0], end)
+                else:
+                    merged_periods.append((start, end))
+
+            self.deceleration_periods = merged_periods
 
     def data_ready(self):
         """Checks if all necessary datasets are loaded for synchronization."""
