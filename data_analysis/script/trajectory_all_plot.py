@@ -44,9 +44,9 @@ def plot_trajectories(folder_paths, subject=None,scenario=None,output_path=None)
     plt.close(fig)
     
 
-csv_file_path = r'D:\gitee\EEG_Neurofeedback\data\trails_index.csv'
+csv_file_path = r'D:\gitee\EEG_Neurofeedback\data_analysis\results\20240606\20240606_trials_index.csv'
 
-for i in range(5,11):
+for i in range(0,11):
     subject = 's'+ str(i).zfill(2)
     pic_path = r'D:\gitee\EEG_Neurofeedback\data_analysis\results\20240606\trajectory'
     # print(subject)
