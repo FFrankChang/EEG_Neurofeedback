@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Load and preprocess data
-file_path = r'D:\gitee\EEG_Neurofeedback\data\test\20240531_lxk_05_easy_silence\carla_merged.csv'
+file_path = r"E:\NFB_data_backup\data_20240606\test\20240531_lxk_05_easy_silence\carla_merged.csv"
 data = pd.read_csv(file_path, dtype={'arousal': float, 'TTC': float})
 data['TTC'] = np.log1p(data['TTC'])
 

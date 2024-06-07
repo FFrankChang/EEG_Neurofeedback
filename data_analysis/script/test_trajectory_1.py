@@ -12,7 +12,7 @@ mode_switched_points = data[data['Mode_Switched'] == 'Yes']
 collision_points = data[data['Collision'] == 'Yes']
 
 plt.figure(figsize=(10, 6))
-sc = plt.scatter(data['Location_x'], data['Location_y'], c=TTC_numeric, cmap='viridis', norm=norm, s=10, edgecolor='none',alpha=0.9)
+sc = plt.scatter(data['Location_x'], data['Location_y'], c=TTC_numeric, cmap='viridis', s=10, edgecolor='none',alpha=0.5)
 plt.colorbar(sc, label='TTC')
 plt.scatter(mode_switched_points['Location_x'], mode_switched_points['Location_y'],facecolors='none', edgecolors='red', s=50, label='Take Over')
 plt.scatter(collision_points['Location_x'], collision_points['Location_y'], facecolors='none', edgecolors='black', s=50, label='Collision')

@@ -25,7 +25,7 @@ def load_and_process_data(file_path):
     return combined_counts
 
 # Example usage:
-file_path = r'D:\gitee\EEG_Neurofeedback\data\trails_index.csv'
+file_path = r'D:\gitee\EEG_Neurofeedback\data_analysis\results\20240606\20240606_trails_index.csv'
 final_table = load_and_process_data(file_path)
 final_table.to_csv('result.csv')
 print(final_table)
