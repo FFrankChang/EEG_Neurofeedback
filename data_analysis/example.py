@@ -45,6 +45,7 @@ video_path = auto_load_data(dm, data_dir)
 
 dv = DataVisualizer(dm)
 fig = dv.visualize(['arousal', 'carla', 'eye', 'heart'])
-dv.save_figure(fig)
+
+# dv.save_figure(fig)
 # app = VideoDataViewer(video_path, dm, ['arousal','heart'],start_time=video_start_time,annotation_mode=True)
 # app.mainloop()

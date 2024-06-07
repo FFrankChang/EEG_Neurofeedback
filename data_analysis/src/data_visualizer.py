@@ -107,10 +107,18 @@ class DataVisualizer:
         if self.data_manager.collision_times:
             for time in self.data_manager.collision_times:
                 ax.axvline(x=time, color='black', linestyle='-.', label='Collision' if 'Collision' not in ax.get_legend_handles_labels()[1] else '')
+    
+    # def plot_deceleration_periods(self, ax):
+    #     """Highlights deceleration periods on the plot."""
+    #     for start, end in self.data_manager.deceleration_periods:
+    #         start = pd.to_datetime(start, unit='s').tz_localize('UTC').tz_convert('Asia/Shanghai').tz_localize(None)
+    #         end = pd.to_datetime(end, unit='s').tz_localize('UTC').tz_convert('Asia/Shanghai').tz_localize(None)
+    #         print(start,end)
+    #         ax.axvspan(start, end, color='grey')
 
     def visualize(self, plots=['arousal', 'carla', 'eye', 'heart']):
         """Visualize selected plots only if data is loaded."""
-        fig, axs = plt.subplots(len(plots), 1, figsize=(18, 3 * len(plots)), sharex=True)
+        fig, axs = plt.subplots(len(plots), 1, figsize=(18, 3 * len(plots)))
         
         if len(plots) == 1:
             axs = [axs]
@@ -124,15 +132,15 @@ class DataVisualizer:
         fig.tight_layout()
         plt.subplots_adjust(hspace=0.3, top=0.92)
         fig.suptitle(self.data_manager.folder_name,fontweight='bold')
-        plt.get_current_fig_manager().window.state('zoomed')
+        # plt.get_current_fig_manager().window.state('zoomed')
         plt.show()
         return fig
     
     def save_figure(self, fig, path=None):
         """Save the figure to the default directory or an additional path if provided."""
         default_filename = os.path.join(self.data_manager.data_dir, self.data_manager.folder_name + '_overall.png')
-        fig.savefig(default_filename)
-        print(f"Figure saved to {default_filename}")
+        # fig.savefig(default_filename)
+        # print(f"Figure saved to {default_filename}")
         if path:
             additional_filename = os.path.join(path, self.data_manager.folder_name + '_overall.png')
             fig.savefig(additional_filename)

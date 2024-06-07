@@ -14,7 +14,8 @@ class DataManager:
         self.heart_rate_data = None
         self.mode_times = []
         self.collision_times = []
-
+        self.deceleration_periods = []
+        
     def load_eye_data(self, file_path):
         """Loads and processes eye-tracking data."""
         df = pd.read_csv(file_path)
@@ -33,6 +34,7 @@ class DataManager:
         self.carla_data = self.split_steer_column(self.carla_data)
         self.calculate_ttc(self.carla_data)
         self.load_event_data()
+        self.detect_deceleration_periods()
         if self.data_ready():
             self.trim_data()
 
@@ -64,6 +66,31 @@ class DataManager:
         heart_rate = 60 / rr_intervals
         heart_rate_times = self.ecg_data['timestamp'].iloc[peaks][1:]  # Skipping the first peak
         self.heart_rate_data = pd.DataFrame({'timestamp': heart_rate_times, 'heart_rate': heart_rate})
+
+    def detect_deceleration_periods(self):
+        """Detects continuous deceleration periods based on speed thresholds."""
+        if self.carla_data is not None:
+            carla_data = self.carla_data
+            carla_data['Mode_Switched'] = carla_data['Mode_Switched'].fillna("No")
+            switch_indices = carla_data.index[carla_data['Mode_Switched'].eq("Yes")]
+            print()
+            for index in switch_indices:
+                subset = carla_data.loc[index:].reset_index(drop=True)
+                speed_less_than_75 = subset['Lead_Vehicle_Speed'] < 75
+                in_deceleration = False
+                start_time = None
+                
+                for i, (time, speed, is_below_threshold) in enumerate(zip(subset['timestamp'], subset['Lead_Vehicle_Speed'], speed_less_than_75)):
+                    if is_below_threshold and not in_deceleration:
+                        in_deceleration = True
+                        start_time = time
+                    elif not is_below_threshold and in_deceleration:
+                        in_deceleration = False
+                        if start_time:
+                            self.deceleration_periods.append((start_time, subset['timestamp'][i-1]))
+                
+                if in_deceleration and start_time:
+                    self.deceleration_periods.append((start_time, subset['timestamp'].iloc[-1]))
 
     def data_ready(self):
         """Checks if all necessary datasets are loaded for synchronization."""
