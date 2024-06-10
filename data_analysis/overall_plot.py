@@ -49,7 +49,7 @@ def process_data_folders(csv_file_path,subject):
         video_path = auto_load_data(dm, folder)
 
         dv = DataVisualizer(dm)
-        fig = dv.visualize(['arousal', 'carla', 'eye', 'heart'])
+        fig = dv.visualize(['arousal', 'carla', 'eye', 'heart'],display=False)
 
         # Save figures in a dedicated folder for each date or experiment
         result_folder = r'D:\gitee\EEG_Neurofeedback\data_analysis\results\20240606\overall'

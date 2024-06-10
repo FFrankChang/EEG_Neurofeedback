@@ -117,7 +117,7 @@ class DataVisualizer:
             end = pd.to_datetime(end, unit='s').tz_localize('UTC').tz_convert('Asia/Shanghai').tz_localize(None)
             ax.axvspan(start, end, color='grey',alpha = 0.3)
 
-    def visualize(self, plots=['arousal', 'carla', 'eye', 'heart']):
+    def visualize(self, plots=['arousal', 'carla', 'eye', 'heart'],display= True):
         """Visualize selected plots only if data is loaded."""
         fig, axs = plt.subplots(len(plots), 1, figsize=(18, 3 * len(plots)))
         
@@ -133,8 +133,9 @@ class DataVisualizer:
         fig.tight_layout()
         plt.subplots_adjust(hspace=0.3, top=0.92)
         fig.suptitle(self.data_manager.folder_name,fontweight='bold')
-        # plt.get_current_fig_manager().window.state('zoomed')
-        plt.show()
+        plt.get_current_fig_manager().window.state('zoomed')
+        if display:
+            plt.show()
         return fig
     
     def save_figure(self, fig, path=None):
