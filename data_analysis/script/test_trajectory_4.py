@@ -1,11 +1,13 @@
 import pandas as pd
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.gridspec as gridspec
 from matplotlib.widgets import Slider
 
 # Load your data
-file_path = r'D:\gitee\EEG_Neurofeedback\data\test\20240531_lxk_05_easy_silence\carla_merged.csv'
+file_path = r'D:\gitee\EEG_Neurofeedback\data\20240522_s01_07_hard_feedback\carla_merged.csv'
 data = pd.read_csv(file_path)
 
 # Assume arousal data is in a column named 'Arousal' in the same CSV
@@ -19,7 +21,7 @@ collision_points = data[data['Collision'] == 'Yes']
 
 # Create a figure with a GridSpec for layout management
 fig = plt.figure(figsize=(14, 12))
-gs = gridspec.GridSpec(3, 2, width_ratios=[20, 1], height_ratios=[1, 2, 1])
+gs = gridspec.GridSpec(3, 2, width_ratios=[20, 1], height_ratios=[2, 2, 1])
 
 # Plot the trajectory
 ax1 = fig.add_subplot(gs[0, 0])
@@ -27,8 +29,12 @@ sc = ax1.scatter(data['Location_x'], data['Location_y'], c=TTC_numeric, cmap='vi
 ax1.scatter(mode_switched_points['Location_x'], mode_switched_points['Location_y'], facecolors='none', edgecolors='red', s=50, label='Take Over')
 ax1.scatter(collision_points['Location_x'], collision_points['Location_y'], facecolors='none', edgecolors='black', s=50, label='Collision')
 
+for line in [2992.5, 2996.25, 3000, 3003.75, 3007.5, 3011.25]:
+    ax1.axhline(y=line, color='grey', linestyle='-', linewidth=0.5)
+    
 ax1.set_aspect('equal')
-ax1.set_xlim(5500, 3000)  # Set fixed x-limits
+ax1.set_xlim(5500, 3000) 
+ax1.set_ylim(2980,3020) 
 ax1.set_ylabel('Location Y')
 # ax1.legend()
 ax1.set_title('Dynamic Color Vehicle Trajectory Based on TTC')
@@ -39,7 +45,7 @@ fig.colorbar(sc, cax=cbar_ax, label='TTC')
 
 # Plot arousal data
 ax2 = fig.add_subplot(gs[1, 0])
-line, = ax2.plot(data['Location_x'], arousal, label='Arousal', color='blue')
+line, = ax2.plot(data['Location_x'], arousal, label='Arousal', color='lightcoral')
 ax2.set_xlim(5500, 3000)  # Set fixed x-limits
 ax2.set_ylabel('Arousal')
 ax2.set_xlabel('Location X')
