@@ -27,33 +27,25 @@ def detect_changes(file_path):
     fixed_steer = "(0.0, 0.5, 0.5)"
     steer_change_index = data[data['Steer'] != fixed_steer].index[0] if not data[data['Steer'] != fixed_steer].empty else None
     steer_change_timestamp = data.loc[steer_change_index, 'timestamp'] if steer_change_index is not None else "No change detected"
-    if steer_change_timestamp != "No change detected":
-        steer_change_timestamp = datetime.fromtimestamp(steer_change_timestamp, beijing_timezone).strftime('%Y-%m-%d %H:%M:%S')
-
-    # Step 2: Find all timestamps where Mode_Switched is "Yes"
-    mode_switched_timestamps = data[data['Mode_Switched'] == "Yes"]['timestamp'].tolist()
-    mode_switched_timestamps = [datetime.fromtimestamp(ts, beijing_timezone).strftime('%Y-%m-%d %H:%M:%S') for ts in mode_switched_timestamps]
-
-    return steer_change_timestamp, mode_switched_timestamps
+ 
+    mode_switched_timestamp = data.loc[data['Mode_Switched'] == "Yes", 'timestamp'].iloc[0]
+    return steer_change_timestamp, mode_switched_timestamp
 
 def process_folder(directory_path):
-    # Find all csv files that start with 'carla_'
-    files = [os.path.join(directory_path, f) for f in os.listdir(directory_path) if f.startswith('carla_') and f.endswith('.csv')]
-    
-    results = {}
-    for file in files:
-        steer_change, mode_switched = detect_changes(file)
-        results[file] = {
-            "Steer change timestamp": steer_change,
-            "Mode_Switched timestamps": mode_switched
-        }
-    return results
+    for filename in os.listdir(directory_path):
+        if filename.startswith('carla_2024') and filename.endswith('.csv'):
+            file_path = os.path.join(directory_path, filename)
+            break
+    steer_change, mode_switched = detect_changes(file_path)
+    return steer_change,mode_switched
 
-# Example usage
-directory_path = 'path_to_your_directory'
-results = process_folder(directory_path)
-for file, result in results.items():
-    print(f"File: {file}")
-    print(f"Timestamp when Steer data starts changing: {result['Steer change timestamp']}")
-    print(f"Timestamps when Mode_Switched is 'Yes': {result['Mode_Switched timestamps']}")
-    print(result['Mode_Switched timestamps']-result['Steer change timestamp'])
+# Example usage     
+directory_path = r'D:\gitee\EEG_Neurofeedback\data_analysis\results\20240606\20240606_trials_index.csv'
+folder= filter_folder_paths(directory_path)
+results = []
+for item in folder:
+    steer_change,mode_switched= process_folder(item)
+    # print(item,mode_switched-steer_change)
+    results.append([item,mode_switched-steer_change])
+df = pd.DataFrame(results, columns=['Item', 'Result'])
+df.to_csv('gap_detection.csv',index=False)
