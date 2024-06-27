@@ -30,7 +30,7 @@ def merge_eeg_raw_csv_files(folder_paths, output_csv_path):
 
 subject = 's09'
 scenario = 'easy'
-condition = 'feedback'
+condition = 'silence'
 index_csv_path = r'D:\gitee\EEG_Neurofeedback\data_analysis\results\20240606\20240606_trials_index.csv'
 output_csv_path = rf'{subject}_{scenario}_{condition}.csv'
 
