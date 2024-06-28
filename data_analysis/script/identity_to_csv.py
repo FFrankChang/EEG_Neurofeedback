@@ -63,7 +63,7 @@ def filter_folder_paths(csv_file_path, date=None, subject=None, experiment_no=No
     return data['FolderPath'].tolist()
 
 index_csv_path = r'D:\gitee\EEG_Neurofeedback\data_analysis\results\20240606\20240606_trials_index.csv'
-folder_paths=filter_folder_paths(index_csv_path,subject='s09')
+folder_paths=filter_folder_paths(index_csv_path,subject='s01')
 
 for path in folder_paths:
     file_path = os.path.join(path, 'carla_merged.csv')
