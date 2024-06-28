@@ -3,7 +3,7 @@ import os
 
 # Define the base directory where the folders are located
 base_dir = r"D:\gitee\EEG_Neurofeedback\data"  # Adjust this path
-subject = 'yyk'
+subject = 's10'
 # Initialize a DataFrame to store the results
 columns = ["subject_name", "experiment_no", "scenario", "condition"]
 for i in range(1, 6):
