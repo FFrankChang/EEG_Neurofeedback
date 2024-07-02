@@ -21,6 +21,7 @@ class VehicleDataProcessor:
         self.carla_data = pd.read_csv(carla_file_path)
         self.eeg_data = pd.read_csv(eeg_file_path)
         self.first_takeover_time = None
+        self.last_carla_timestamp = None
 
     def fill_missing_values(self):
         """Fill missing values in the 'Mode_Switched' column."""
@@ -33,17 +34,22 @@ class VehicleDataProcessor:
         if switch_indices:
             self.first_takeover_time = self.carla_data.loc[switch_indices[0], 'timestamp']
 
+    def find_last_carla_timestamp(self):
+        """Finds the timestamp of the last row in the carla_data."""
+        self.last_carla_timestamp = self.carla_data['timestamp'].iloc[-1]
+
     def filter_eeg_data(self):
-        """Filter out EEG data before the first takeover time."""
-        if self.first_takeover_time:
-            self.eeg_data = self.eeg_data[self.eeg_data['timestamp'] >= self.first_takeover_time]
+        """Filter out EEG data before the first takeover time and after the last carla_data timestamp."""
+        if self.first_takeover_time and self.last_carla_timestamp:
+            self.eeg_data = self.eeg_data[(self.eeg_data['timestamp'] >= self.first_takeover_time) & 
+                                          (self.eeg_data['timestamp'] <= self.last_carla_timestamp)]
 
     def save_filtered_eeg_data(self, output_file_path):
         """Saves the filtered EEG data to a new file."""
-        if self.first_takeover_time:
+        if self.first_takeover_time and self.last_carla_timestamp:
             self.eeg_data.to_csv(output_file_path, index=False)
         else:
-            print("No takeover event found. No data saved.")
+            print("No valid timestamp range found. No data saved.")
 
 def process_data_in_folder(folder_path):
     carla_file_path = os.path.join(folder_path, 'carla_merged.csv')
@@ -55,6 +61,7 @@ def process_data_in_folder(folder_path):
     for eeg_file_path in eeg_file_paths:
         processor = VehicleDataProcessor(carla_file_path, eeg_file_path)
         processor.find_first_takeover_event()
+        processor.find_last_carla_timestamp()
         processor.filter_eeg_data()
         eeg_filename = os.path.basename(folder_path)
         
@@ -63,8 +70,8 @@ def process_data_in_folder(folder_path):
         
 
 index_csv_path = r'D:\gitee\EEG_Neurofeedback\data_analysis\results\20240606\20240606_trials_index.csv'
-folder_paths=filter_folder_paths(index_csv_path,subject='s10')
-
-for path in folder_paths:
-
-    process_data_in_folder(path)
+for i in range(2,11):
+    subject = 's' + str(i).zfill(2)
+    folder_paths=filter_folder_paths(index_csv_path,subject=subject)
+    for path in folder_paths:
+        process_data_in_folder(path)
