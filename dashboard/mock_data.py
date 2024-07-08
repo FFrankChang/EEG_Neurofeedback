@@ -1,35 +1,36 @@
-import socket
-import time
+from flask import Flask
+from flask_socketio import SocketIO, emit
 import random
-import threading
-import keyboard  # Import the keyboard library to detect key presses
+import time
+from threading import Thread, Event
 
-def send_data(port, stop_event):
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
-        while not stop_event.is_set():
-            data = random.uniform(0, port-5000)  # Generate random arousal level
-            # print(f"Sending {data} to port {port}")
-            sock.sendto(str(data).encode(), ('localhost', port))
-            time.sleep(0.01)  # Send data every second
-        print(f"Stopping thread for port {port}")
+app = Flask(__name__)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
-def main():
-    stop_event = threading.Event()  # Event to signal the threads to stop
-    ports = [5001, 5002, 5003]  # List of ports to send data to
-    threads = []
+def generate_data(event_name):
+    # This function generates random data and sends it to all connected clients
+    while True:
+        time.sleep(1)  # Simulate data generation interval
+        data = {
+            'time': time.strftime('%Y-%m-%dT%H:%M:%S', time.localtime()),  # ISO 8601 format
+            'value': random.random() * 100  # Random value between 0 and 100
+        }
+        socketio.emit(event_name, data)  # Emit data to all clients subscribed to this event
 
-    for port in ports:
-        thread = threading.Thread(target=send_data, args=(port, stop_event))
-        threads.append(thread)
-        thread.start()
+@app.route('/')
+def index():
+    return "Real-time data visualization"
 
-    # Wait for the ESC key to be pressed
-    keyboard.wait('esc')
-    stop_event.set()  # Signal all threads to stop
+@socketio.on('connect')
+def handle_connect():
+    # Start a thread for each type of data when a client connects
+    arousal_thread = Thread(target=generate_data, args=('arousal_data',))
+    steering_thread = Thread(target=generate_data, args=('steering_data',))
+    pupil_size_thread = Thread(target=generate_data, args=('pupilsize_data',))
+    arousal_thread.start()
+    steering_thread.start()
+    pupil_size_thread.start()
+    emit('my response', {'data': 'Connected'})
 
-    for thread in threads:
-        thread.join()  # Wait for all threads to finish
-    print("All threads have been stopped.")
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    socketio.run(app, host='0.0.0.0', port=5000)
