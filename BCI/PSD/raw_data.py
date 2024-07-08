@@ -34,6 +34,7 @@ def udp_data_receiver(output_dir, file_name):
                     json_data = json.loads(data.decode())
                     json_data['timestamp'] = time.time()
                     writer.writerow({field: json_data.get(field, '') for field in headers})
+                    print(f"Received and saved UDP data at {datetime.now()}")
                 except json.JSONDecodeError:
                     print("Received non-JSON data")
                 except KeyboardInterrupt:
@@ -50,6 +51,7 @@ def lsl_data_receiver(output_dir, file_name):
         header = ['timestamp'] + full_names + ['machine_timestamp']
         writer = csv.writer(file)
         writer.writerow(header)
+        sample_count = 0
         try:
             while True:
                 samples, timestamps = inlet.pull_chunk()
@@ -57,6 +59,8 @@ def lsl_data_receiver(output_dir, file_name):
                     for sample, timestamp in zip(samples, timestamps):
                         row = [time.time()] + sample + [timestamp]
                         writer.writerow(row)
+                        sample_count += 1
+                    print(f"Received {len(samples)} samples, total {sample_count} samples at {datetime.now()}")
         except KeyboardInterrupt:
             print("LSL data reception interrupted, stopping.")
 
@@ -72,17 +76,17 @@ def main():
         global headers
         headers = config_file.read().strip().split('\n')
 
-    # Create threads for each data receiver
     udp_thread = Thread(target=udp_data_receiver, args=(base_path, eye_data_filename))
     lsl_thread = Thread(target=lsl_data_receiver, args=(base_path, eeg_data_filename))
 
-    # Start threads
     udp_thread.start()
     lsl_thread.start()
 
-    # Wait for threads to complete
-    udp_thread.join()
-    lsl_thread.join()
+    try:
+        udp_thread.join()
+        lsl_thread.join()
+    except KeyboardInterrupt:
+        print("Main program interrupted, stopping all operations.")
     print("Data reception completed.")
 
 if __name__ == "__main__":
