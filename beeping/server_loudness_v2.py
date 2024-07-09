@@ -14,16 +14,22 @@ audio_file = os.path.join(current_dir, "heartbeat.mp3")
 tor_audio_file = os.path.join(current_dir, "TOR.mp3")
 
 # Global variables for volume settings and history
-base_arousal = 0.0 # Threshold for the minimum arousal value to play sound
+base_arousal = 0.0  # Threshold for the minimum arousal value to play sound
 loudness = 0
 base_volume = 0.05
 arousal_history = []  # History of raw arousal values
 loudness_history = []
 smoothed_loudness_history = []  # History of smoothed loudness values
+sound_enabled = True  # Control flag to enable or disable sound
 
 # Function to adjust volume based on smoothed loudness
 def adjust_volume(arousal):
-    global loudness
+    global loudness, sound_enabled
+    if not sound_enabled:
+        pygame.mixer.music.set_volume(0)
+        print("声音已被禁用")
+        return
+
     arousal_history.append(arousal)  # Append current arousal to history
 
     if arousal < base_arousal:
@@ -45,6 +51,21 @@ def adjust_volume(arousal):
     pygame.mixer.music.set_volume(smoothed_loudness + base_volume)
     print(f"当前音量：{round(smoothed_loudness, 2)}")
 
+# Function to control sound based on specific messages
+def control_sound(sock):
+    global sound_enabled
+    while True:
+        data, addr = sock.recvfrom(1024)
+        command = data.decode().strip().lower()
+
+        if command == "silence":
+            sound_enabled = False
+            pygame.mixer.music.set_volume(0)
+            print("音频已静音")
+        elif command == "feedback":
+            sound_enabled = True
+            print("音频已恢复")
+
 # Function to plot arousal history graph
 def plot_arousal():
     fig, ax = plt.subplots()
@@ -65,57 +86,12 @@ def plot_arousal():
     ani = FuncAnimation(fig, update, interval=100)
     plt.show()
 
-# Function to receive volume adjustment data
-def receive_volume_data(sock):
-    while True:
-        data, addr = sock.recvfrom(1024)
-        message = data.decode()
-        if message.startswith("arousal:"):
-            arousal_value = float(message.split(":")[1])
-            adjust_volume(arousal_value)
-
-# Function to control audio playback
-def control_audio(sock):
-    while True:
-        data, addr = sock.recvfrom(1024)
-        command = data.decode().strip().lower()
-
-        if command == "play":
-            if not pygame.mixer.music.get_busy():
-                pygame.mixer.music.play(-1)
-            else:
-                print("音频已经在播放中")
-                
-        elif command == "tor":
-            tor_channel = pygame.mixer.Channel(1)
-            tor_sound = pygame.mixer.Sound(tor_audio_file)
-            tor_channel.play(tor_sound)
-            print("接管提示")
-
-        elif command == "stop":
-            pygame.mixer.music.stop()
-            print("音频停止")
-            break
-
-# Function to pause audio playback
-def pause_audio(sock):
-    while True:
-        data, addr = sock.recvfrom(1024)
-        command = data.decode().strip().lower()
-
-        if command == "pause":
-            if pygame.mixer.music.get_busy():
-                pygame.mixer.music.pause()
-                print("音频暂停")
-            else:
-                print("音频已经暂停")
-
 # Main function
 def main():
     pygame.mixer.music.load(audio_file)
-    pygame.mixer.music.set_volume(loudness+base_volume)
-    
-    # Set up three ports and sockets
+    pygame.mixer.music.set_volume(loudness + base_volume)
+
+    # Set up ports and sockets
     volume_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     volume_sock.bind(('0.0.0.0', 12345))  # Port for volume adjustment
 
@@ -124,6 +100,9 @@ def main():
 
     pause_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     pause_sock.bind(('0.0.0.0', 12347))  # Port for pause control
+
+    sound_control_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sound_control_sock.bind(('0.0.0.0', 12348))  # Port for sound control
 
     # Create and start threads
     volume_thread = threading.Thread(target=receive_volume_data, args=(volume_sock,), daemon=True)
@@ -134,6 +113,9 @@ def main():
 
     pause_thread = threading.Thread(target=pause_audio, args=(pause_sock,), daemon=True)
     pause_thread.start()
+
+    sound_control_thread = threading.Thread(target=control_sound, args=(sound_control_sock,), daemon=True)
+    sound_control_thread.start()
 
     plot_thread = threading.Thread(target=plot_arousal, daemon=True)
     plot_thread.start()
@@ -146,6 +128,7 @@ def main():
         volume_sock.close()
         control_sock.close()
         pause_sock.close()
+        sound_control_sock.close()
 
 if __name__ == '__main__':
     main()
