@@ -10,6 +10,11 @@ UDP_PORT = 5005       # 选择一个端口号
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((UDP_IP, UDP_PORT))
 
+# 创建用于发送消息的socket
+send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+send_ip = "127.0.0.1"
+send_port = 12347
+
 process = None
 
 # 脚本字典配置，这里可以自由配置路径
@@ -37,13 +42,11 @@ try:
                 start_time = time.time()
                 print(f"Started script {script_path}.")
 
-                # 如果是脚本1，记录开启时间并设置定时器
                 if command == "1":
                     with open(csv_file_path, 'a', newline='') as csvfile:
                         csvwriter = csv.writer(csvfile)
                         csvwriter.writerow(['start_script_1', datetime.datetime.now()])
 
-                    # 等待10分钟后自动关闭脚本1
                     time.sleep(RUN_TIME)
                     process.terminate()
                     print("Automatically terminated script 1 after 10 minutes.")
@@ -62,12 +65,18 @@ try:
                 process.terminate()  # 终止进程
                 print("Terminated the script.")
                 if process.args[1] == scripts["1"]:
-                    # 如果终止的是脚本1，记录关闭时间
                     with open(csv_file_path, 'a', newline='') as csvfile:
                         csvwriter = csv.writer(csvfile)
                         csvwriter.writerow(['stop_script_1', datetime.datetime.now()])
                 process = None
+
+                # 向本地端口12347发送消息“pause”
+                message = "pause".encode()
+                send_sock.sendto(message, (send_ip, send_port))
+                print(f"Sent 'pause' to {send_ip}:{send_port}")
+
             else:
                 print("No script is running.")
 finally:
     sock.close()
+    send_sock.close()  # 也关闭发送消息的socket
