@@ -38,6 +38,8 @@ def udp_data_receiver(output_dir, file_name, stop_event):
                     json_data['timestamp'] = time.time()
                     writer.writerow({field: json_data.get(field, '') for field in headers})
                     eye_frame_count += 1
+                    if eye_frame_count % 180 == 0:
+                        file.flush()
                 except json.JSONDecodeError:
                     print("Received non-JSON data")
 
@@ -59,6 +61,8 @@ def lsl_data_receiver(output_dir, file_name, stop_event):
                     row = [time.time()] + sample + [timestamp]
                     writer.writerow(row)
                     eeg_frame_count += 1
+                    if eeg_frame_count % 3000 ==0:
+                        file.flush()
 
 def print_frame_rates():
     global eye_frame_count, eeg_frame_count
