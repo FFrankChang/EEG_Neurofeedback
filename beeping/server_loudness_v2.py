@@ -85,6 +85,48 @@ def plot_arousal():
 
     ani = FuncAnimation(fig, update, interval=100)
     plt.show()
+def receive_volume_data(sock):
+    while True:
+        data, addr = sock.recvfrom(1024)
+        message = data.decode()
+        if message.startswith("arousal:"):
+            arousal_value = float(message.split(":")[1])
+            adjust_volume(arousal_value)
+
+def control_audio(sock):
+    while True:
+        data, addr = sock.recvfrom(1024)
+        command = data.decode().strip().lower()
+
+        if command == "play":
+            if not pygame.mixer.music.get_busy():
+                pygame.mixer.music.play(-1)
+            else:
+                print("音频已经在播放中")
+                
+        elif command == "tor":
+            tor_channel = pygame.mixer.Channel(1)
+            tor_sound = pygame.mixer.Sound(tor_audio_file)
+            tor_channel.play(tor_sound)
+            print("接管提示")
+
+        elif command == "stop":
+            pygame.mixer.music.stop()
+            print("音频停止")
+            break
+
+def pause_audio(sock):
+    while True:
+        data, addr = sock.recvfrom(1024)
+        command = data.decode().strip().lower()
+
+        if command == "pause":
+            if pygame.mixer.music.get_busy():
+                pygame.mixer.music.pause()
+                print("音频暂停")
+            else:
+                print("音频已经暂停")
+
 
 # Main function
 def main():
