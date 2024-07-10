@@ -23,7 +23,6 @@ def get_channel_names_from_info(info):
 streams = resolve_stream('name', 'SAGA')
 inlet = StreamInlet(streams[0])
 full_names = get_channel_names_from_info(inlet.info())
-# full_names = ['Fp1', 'Fp2', 'Fz', 'F3', 'F4', 'F7', 'F8', 'FC1', 'FC2', 'FC5', 'FC6', 'Cz', 'C3', 'C4', 'T7', 'T8', 'CP1', 'CP2', 'CP5', 'CP6', 'Pz', 'P3', 'P4', 'P7', 'P8', 'PO3', 'PO4', 'Oz', 'O1', 'O2', 'A2', 'A1'] 
 num_channels = len(full_names)  
 sfreq = inlet.info().nominal_srate()
 
