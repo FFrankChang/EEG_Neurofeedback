@@ -65,6 +65,9 @@ def control_sound(sock):
         elif command == "feedback":
             sound_enabled = True
             print("音频已恢复")
+        elif command == "stop":
+            pygame.mixer.music.stop()
+            print("音频停止")
 
 # Function to plot arousal history graph
 def plot_arousal():
