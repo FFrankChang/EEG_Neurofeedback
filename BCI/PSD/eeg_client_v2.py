@@ -30,7 +30,7 @@ def data_receiver():
                 for sample, timestamp in zip(samples, timestamps):
                     data_queue.put(sample)
                     row = [time.time()] + sample + [timestamp]
-                    writer.writerow(row)
+                    # writer.writerow(row)
 
 # Resolve stream and create inlet
 streams = resolve_stream('name', 'SAGA')
@@ -112,6 +112,7 @@ raw_data_file = os.path.join(data_directory, f'eegraw_{current_date_time}.csv')
 receiver_thread = threading.Thread(target=data_receiver, daemon=True)
 
 processor_thread = threading.Thread(target=data_processor, args=(['C3', 'C4', 'F3', 'F4'],), daemon=True)
+receiver_thread.start()
 processor_thread.start()
 
 try:
