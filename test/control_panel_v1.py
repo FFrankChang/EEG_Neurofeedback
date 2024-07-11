@@ -15,7 +15,7 @@ def generate_conditions():
 # Function to send UDP message, specifying port
 def send_udp_message(message, port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    udp_host = "localhost"  # Host IP
+    udp_host = "192.168.3.24"  # Host IP
     sock.sendto(message.encode(), (udp_host, port))
     print(f"'{message}' sent to port {port}")
     sock.close()
