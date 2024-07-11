@@ -17,7 +17,7 @@ def send_udp_message(message, port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udp_host = "192.168.3.24"  # Host IP
     sock.sendto(message.encode(), (udp_host, port))
-    print(f"'{message}' sent to port {port}")
+    print(f"'{message}' sent to port {port} {udp_host}")
     sock.close()
 
 # Create the main window
@@ -62,7 +62,8 @@ def send_numeric_command(number):
     dd = dd_entry.get()
     message = f"{number} | Condition: {current_condition} | Subject: {subject} | Day: {dd}"
     send_udp_message(message, 5005)
-
+    if number == "0":
+        send_udp_message("stop", 12348)
 # Buttons for sending numeric commands with custom labels
 button_labels = {
     "0": "Stop",
