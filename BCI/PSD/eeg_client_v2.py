@@ -20,17 +20,11 @@ def get_channel_names_from_info(info):
     return channel_names
 
 def data_receiver():
-    with open(raw_data_file, 'w', newline='') as file:
-        header = ['timestamp'] + full_names + ['machine_timestamp']
-        writer = csv.writer(file)
-        writer.writerow(header)
         while True:
             samples, timestamps = inlet.pull_chunk()
             if timestamps:
                 for sample, timestamp in zip(samples, timestamps):
                     data_queue.put(sample)
-                    row = [time.time()] + sample + [timestamp]
-                    # writer.writerow(row)
 
 # Resolve stream and create inlet
 streams = resolve_stream('name', 'SAGA')
@@ -65,8 +59,6 @@ def bandpass_filter(data, lowcut=1.0, highcut=40.0, fs=sfreq, order=4):
     b, a = butter(order, [low, high], btype='band')
     y = filtfilt(b, a, data)
     return y
-
-
 
 def data_processor(selected_channels, window_size=1000, step_size=100):
     channel_indices = [full_names.index(ch) for ch in selected_channels]
@@ -110,7 +102,6 @@ def data_processor(selected_channels, window_size=1000, step_size=100):
 raw_data_file = os.path.join(data_directory, f'eegraw_{current_date_time}.csv')
 
 receiver_thread = threading.Thread(target=data_receiver, daemon=True)
-
 processor_thread = threading.Thread(target=data_processor, args=(['C3', 'C4', 'F3', 'F4'],), daemon=True)
 receiver_thread.start()
 processor_thread.start()
