@@ -20,6 +20,13 @@ def get_channel_names_from_info(info):
         channel_names.append(name)
     return channel_names
 
+def data_receiver():
+        while True:
+            samples, timestamps = inlet.pull_chunk()
+            if timestamps:
+                for sample, timestamp in zip(samples, timestamps):
+                    data_queue.put(sample)
+
 # Resolve stream and create inlet
 streams = resolve_stream('name', 'SAGA')
 inlet = StreamInlet(streams[0])
@@ -54,8 +61,6 @@ def bandpass_filter(data, lowcut=1.0, highcut=40.0, fs=sfreq, order=4):
     y = filtfilt(b, a, data)
     return y
 
-
-
 def data_processor(selected_channels, window_size=1000, step_size=100):
     channel_indices = [full_names.index(ch) for ch in selected_channels]
     samples = [np.zeros(num_channels) for _ in range(window_size)]
@@ -83,6 +88,7 @@ def data_processor(selected_channels, window_size=1000, step_size=100):
                             band_psd = [np.mean(psd[i, (f >= low) & (f <= high)]) for _, (low, high) in bands.items()]
                             band_psds[ch] = band_psd
                             result_row.extend(band_psd)
+                        # arousal = sum(band_psds[ch][2] for ch in selected_channels) / sum(band_psds[ch][1] for ch in selected_channels)
                         arousal = random.random()
                         result_row.append(arousal)
                         writer.writerow(result_row)
@@ -95,7 +101,11 @@ def data_processor(selected_channels, window_size=1000, step_size=100):
             print("Received interrupt, closing file.")
             file.close()
 
+raw_data_file = os.path.join(data_directory, f'eegraw_{current_date_time}.csv')
+
+receiver_thread = threading.Thread(target=data_receiver, daemon=True)
 processor_thread = threading.Thread(target=data_processor, args=(['C3', 'C4', 'F3', 'F4'],), daemon=True)
+receiver_thread.start()
 processor_thread.start()
 
 try:
