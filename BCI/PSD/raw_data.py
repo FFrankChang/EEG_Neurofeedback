@@ -45,7 +45,7 @@ def udp_data_receiver(output_dir, file_name, stop_event):
 
 def lsl_data_receiver(output_dir, file_name, stop_event):
     global eeg_frame_count
-    streams = resolve_stream('name', 'MockStream')
+    streams = resolve_stream('name', 'SAGA')
     inlet = StreamInlet(streams[0])
     full_names = get_channel_names_from_info(inlet.info())
 
@@ -76,7 +76,7 @@ def main():
     global stop_event
     stop_event = Event()
     current_date_time = datetime.now().strftime('%Y%m%d%H%M%S')
-    base_path = 'F:\\NFB_EXP\\Exp_V2_data\\S01_D01'
+    base_path = 'F:\\NFB_EXP\\Exp_V2_data'
 
     eye_data_filename = f'EYE_{current_date_time}.csv'
     eeg_data_filename = f'EEG_{current_date_time}.csv'
