@@ -33,8 +33,9 @@ def plot_boxplot(df, ax, title,line_colors=['royalblue', 'dimgray'], type='a',la
         boxplot = df.boxplot(ax=ax, column=['Sham Feedback', 'Silence'], widths=0.6, patch_artist=True, return_type='dict')
     elif type == 'c':
         boxplot = df.boxplot(ax=ax, column=['True Feedback', 'Sham Feedback'], widths=0.6, patch_artist=True, return_type='dict')
-
-    ax.set_title(title, fontsize=16)
+    ax.text(0.5, -0.1, title, transform=ax.transAxes, ha='center', fontsize=16, va='top')
+    for tick in ax.get_xticklabels():
+        tick.set_fontsize(14)
     if label:
         ax.set_ylabel('Normalized Pupil Size (mm)', fontsize=14)
     line_colors = line_colors
@@ -67,15 +68,11 @@ def plot_boxplot(df, ax, title,line_colors=['royalblue', 'dimgray'], type='a',la
             fliers.set_markersize(5)
             fliers.set_markeredgecolor(line_colors[i])
 
-        y = df.iloc[:, i]
-        x = np.random.normal(i + 1, 0.04, size=len(y))
-        ax.plot(x, y, 'o', alpha=0.5, markersize=9, color=line_colors[i])
-        ax.tick_params(axis='x', labelsize=14)
-
+        ax.grid(False)
 # 绘制三个子图
-plot_boxplot(df1, axes[0], 'True Feedback and Silence',['royalblue', 'dimgray'],type='a',label=1)
-plot_boxplot(df2, axes[1], 'Sham Feedback and Silence',['black', 'dimgray'],type='b')
-plot_boxplot(df3, axes[2], 'True Feedback and Sham Feedback',['royalblue', 'black'],type='c')
+plot_boxplot(df1, axes[0], '(a) True Feedback and Silence',['royalblue', 'dimgray'],type='a',label=1)
+plot_boxplot(df2, axes[1], '(b) Sham Feedback and Silence',['black', 'dimgray'],type='b')
+plot_boxplot(df3, axes[2], '(c) True Feedback and Sham Feedback',['royalblue', 'black'],type='c')
 
 def add_comparison_line(ax, group1, group2, text, y, h, text_size=12):
     x1, x2 = group1, group2
@@ -95,4 +92,5 @@ add_comparison_line(axes[2], 1, 2, 'p=0.0915', y_max, h, text_size=14)
 #     ax.set_ylim(global_min - 0.1, global_max + 2)
 
 plt.subplots_adjust(wspace=0.1)
-plt.show()
+# plt.show()
+plt.savefig('Pupil.svg')

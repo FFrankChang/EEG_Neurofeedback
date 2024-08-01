@@ -8,16 +8,16 @@ import pandas as pd
 mpl.rcParams['font.family'] = 'Times New Roman'
 
 data1 = {
-    'True Feedback': [13,35,43,26,17.7,52],
-    'Silence': [26,40,42,30,22.8,58.4]
+    'Silence': [13,35,43,26,17.7,52],
+    'True Feedback': [26,40,42,30,22.8,58.4]
 }
 data2 = {
-    'Sham Feedback': [27,55,44.6,58.5,74.5,39.1],
-    'Silence': [30,49,37.2,39.9,41.4,39.9]
+    'Silence': [27,55,44.6,58.5,74.5,39.1],
+    'Sham Feedback': [30,49,37.2,39.9,41.4,39.9]
 }
 data3 = {
-    'True Feedback': [13,35,43,26,17.7,52],
-    'Sham Feedback': [27,55,44.6,58.5,74.5,39.1]
+    'Sham Feedback': [13,35,43,26,17.7,52],
+    'True Feedback': [27,55,44.6,58.5,74.5,39.1]
 }
 
 df1 = pd.DataFrame(data1)
@@ -34,7 +34,9 @@ def plot_boxplot(df, ax, title,line_colors=['royalblue', 'dimgray'], type='a',la
     elif type == 'c':
         boxplot = df.boxplot(ax=ax, column=['True Feedback', 'Sham Feedback'], widths=0.6, patch_artist=True, return_type='dict')
 
-    ax.set_title(title, fontsize=16)
+    ax.text(0.5, -0.1, title, transform=ax.transAxes, ha='center', fontsize=16, va='top')
+    for tick in ax.get_xticklabels():
+        tick.set_fontsize(14)
     if label:
         ax.set_ylabel('pNN35', fontsize=14)
     line_colors = line_colors
@@ -66,16 +68,11 @@ def plot_boxplot(df, ax, title,line_colors=['royalblue', 'dimgray'], type='a',la
             fliers.set_markeredgewidth(1)
             fliers.set_markersize(5)
             fliers.set_markeredgecolor(line_colors[i])
-
-        y = df.iloc[:, i]
-        x = np.random.normal(i + 1, 0.04, size=len(y))
-        ax.plot(x, y, 'o', alpha=0.5, markersize=9, color=line_colors[i])
-        ax.tick_params(axis='x', labelsize=14)
-
-# 绘制三个子图
-plot_boxplot(df1, axes[0], 'True Feedback and Silence',['royalblue', 'dimgray'],type='a',label=1)
-plot_boxplot(df2, axes[1], 'Sham Feedback and Silence',['black', 'dimgray'],type='b')
-plot_boxplot(df3, axes[2], 'True Feedback and Sham Feedback',['royalblue', 'black'],type='c')
+        ax.grid(False)
+        
+plot_boxplot(df1, axes[0], '(a) True Feedback and Silence',['royalblue', 'dimgray'],type='a',label=1)
+plot_boxplot(df2, axes[1], '(b) Sham Feedback and Silence',['black', 'dimgray'],type='b')
+plot_boxplot(df3, axes[2], '(c) True Feedback and Sham Feedback',['royalblue', 'black'],type='c')
 
 def add_comparison_line(ax, group1, group2, text, y, h, text_size=12):
     x1, x2 = group1, group2
@@ -89,10 +86,7 @@ add_comparison_line(axes[0], 1, 2, 'p=0.0625', y_max, h, text_size=14)
 add_comparison_line(axes[1], 1, 2, 'p=0.1563', y_max, h, text_size=14)
 add_comparison_line(axes[2], 1, 2, 'p=0.0649', y_max, h, text_size=14)
 
-# global_min = min(df1.min().min(), df2.min().min(), df3.min().min())
-# global_max = max(df1.max().max(), df2.max().max(), df3.max().max())
-# for ax in axes:
-#     ax.set_ylim(global_min - 0.1, global_max + 2)
 
 plt.subplots_adjust(wspace=0.1)
-plt.show()
+# plt.show()
+plt.savefig('HRV.svg')

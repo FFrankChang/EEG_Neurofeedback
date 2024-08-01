@@ -52,11 +52,6 @@ for i, color in enumerate(line_colors):
         fliers.set_markeredgewidth(1)
         fliers.set_markersize(5)
         fliers.set_markeredgecolor(line_colors[i])
-# Adding the data points on top of the boxplots
-for column_index, column in enumerate(df.columns):
-    y = df[column]
-    x = np.random.normal(column_index + 1, 0.04, size=len(y))  # Adding some jitter to the x-coordinates for clarity
-    plt.plot(x, y, 'o', alpha=0.5, markersize=9, color=line_colors[column_index])  # Match color with box, 'o' for solid circle
 
 # Adding comparison lines and text for p-value
 def add_comparison_line(group1, group2, text, y, h, text_size=12):
@@ -92,4 +87,6 @@ stat, p_value = stats.wilcoxon(data_silence, data_feedback)
 print(f"W {stat}")
 print(f"P-value: {p_value}")
 print(f"Effect: {effect}")
-plt.show()
+plt.grid()
+# plt.show()
+plt.savefig('Figure_8.svg')

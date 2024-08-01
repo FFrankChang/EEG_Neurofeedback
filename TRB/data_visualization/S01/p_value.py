@@ -27,13 +27,16 @@ def plot_ax(ax, p_values, title,y_lable = None):
     ax.set_xticklabels(labels, fontsize=12)
     ax.tick_params(axis='y', labelsize=12)
     # ax.legend(fontsize=12)
-    ax.set_title(title,fontsize=14)
+    # ax.set_title(title,fontsize=14)
+    ax.text(0.5, -0.1, title, transform=ax.transAxes, ha='center', fontsize=16, va='top')
+
     # ax.grid(True)  # 添加背景网格
 
 # 绘制每个子图
-plot_ax(ax1, p_values_1, 'Min_TTC',y_lable='P-values')
-plot_ax(ax2, p_values_2, 'Steering Angle Std. Dev.')
-plot_ax(ax3, p_values_3, 'Acceleration Std. Dev.')
+plot_ax(ax1, p_values_1, '(a) Min_TTC',y_lable='P-values')
+plot_ax(ax2, p_values_2, '(b) Steering Angle Std. Dev.')
+plot_ax(ax3, p_values_3, '(c) Acceleration Std. Dev.')
 
 plt.tight_layout()  # 优化布局以避免重叠
-plt.show()
+# plt.show()
+plt.savefig('Figure_5.svg')

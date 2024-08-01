@@ -22,9 +22,11 @@ fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))  # 两个并列子�
 def plot_boxplot(df, ax, title,y_lable):
 
     boxplot = df.boxplot(ax=ax, column=['Feedback', 'Silence'], widths=0.6, patch_artist=True, return_type='dict')
-    # ax.set_title(title, fontsize=16)
+    ax.text(0.5, -0.1, title, transform=ax.transAxes, ha='center', fontsize=16, va='top')
+    for tick in ax.get_xticklabels():
+        tick.set_fontsize(14)    
     ax.set_ylabel(y_lable, fontsize=14)
-    # ax.grid(False) 
+    ax.grid(False) 
 
     colors = ['royalblue', 'white']  # 每个箱子的颜色
     line_colors = ['royalblue', 'dimgray']  # 每个箱子的线条颜色
@@ -59,14 +61,9 @@ def plot_boxplot(df, ax, title,y_lable):
             fliers.set_markersize(5)
             fliers.set_markeredgecolor(line_colors[i])
 
-        y = df.iloc[:, i]
-        x = np.random.normal(i + 1, 0.04, size=len(y))
-        ax.plot(x, y, 'o', alpha=0.5, markersize=9, color=line_colors[i])
-        ax.tick_params(axis='x',labelsize = 14)
-        
 # 绘制两个子图
-plot_boxplot(df1, axes[0], 'A','Min_TTC (s)')
-plot_boxplot(df2, axes[1], 'B','Steering Angle Std. Dev. (°)')
+plot_boxplot(df1, axes[0], '(a)','Min_TTC (s)')
+plot_boxplot(df2, axes[1], '(b)','Steering Angle Std. Dev. (°)')
 # 添加比较线和p值注释的函数
 def add_comparison_line(ax, group1, group2, text, y, h, text_size=12,hi=0.3):
     x1, x2 = group1, group2
@@ -84,4 +81,5 @@ add_comparison_line(axes[1], 1, 2, 'p=0.0313', df2.max().max()+0.5, h, text_size
 
 # 调整子图间距
 plt.subplots_adjust(wspace=0.2)
-plt.show()
+# plt.show()
+plt.savefig('Figure_2.svg')
