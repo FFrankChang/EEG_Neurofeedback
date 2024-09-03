@@ -28,11 +28,11 @@ class VehicleDataProcessor:
                 elif not is_below_threshold and in_deceleration:
                     in_deceleration = False
                     if start_time:
-                        end_time = subset['timestamp'][i-1] + 3  # 加3秒
+                        end_time = subset['timestamp'][i-1] + 1  
                         temp_periods.append((start_time, end_time))
             
             if in_deceleration and start_time:
-                end_time = subset['timestamp'].iloc[-1] + 3  # 加3秒
+                end_time = subset['timestamp'].iloc[-1] + 1
                 temp_periods.append((start_time, end_time))
 
         if temp_periods:

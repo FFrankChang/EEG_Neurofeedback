@@ -19,5 +19,5 @@ def find_csv_files(directory):
                     print(f"读取或处理文件 {file_path} 时发生错误: {e}")
 
 # 指定要检查的根目录
-directory = r'E:\NFB_data_backup\filtered'
+directory = r'E:\NFB_data_backup\20240730'
 find_csv_files(directory)

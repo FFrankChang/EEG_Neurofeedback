@@ -10,7 +10,7 @@ np.random.seed(0)
 means = [0.5, 0.30, 0.12]
 std_devs = [0.28, 0.15, 0.1]  # arbitrary standard deviations to generate data
 data = [np.clip(np.random.normal(mean, std, 10), 0, 1) for mean, std in zip(means, std_devs)]
-
+print(data)
 # Create a boxplot
 fig, ax = plt.subplots()
 ax.boxplot(data, showmeans=True)

@@ -51,10 +51,10 @@ class DataProcessor:
                 elif not is_below_threshold and in_deceleration:
                     in_deceleration = False
                     if start_time:
-                        end_time = subset['timestamp'][i-1]
+                        end_time = subset['timestamp'][i-1]+3
                         temp_periods.append((start_time, end_time))
             if in_deceleration and start_time:
-                end_time = subset['timestamp'].iloc[-1]
+                end_time = subset['timestamp'].iloc[-1]+3
                 temp_periods.append((start_time, end_time))
 
         if temp_periods:
@@ -87,7 +87,7 @@ class DataProcessor:
             }, ignore_index=True)
 
     def save_results(self):
-        self.results_df.to_csv(f"./data/{self.subject}_results.csv", index=False)
+        self.results_df.to_csv(f"./data/{self.subject}_results_allthetime.csv", index=False)
 
 index_csv_path = r'D:\gitee\EEG_Neurofeedback\data_analysis\results\20240606\20240606_trials_index.csv'
 for i in range(1,11):

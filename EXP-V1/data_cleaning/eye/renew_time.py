@@ -27,8 +27,8 @@ def save_updated_file(file_a, output_path):
 
 # 主执行代码
 def main():
-    file_a_path = r'E:\Frank_Projects\EEG_Neurofeedback_Frank\S03_segment.csv'  # 这里替换为您的文件A路径
-    file_b_path = r'E:\Frank_Projects\EEG_Neurofeedback_Frank\S03_eye_data.csv'  # 这里替换为您的文件B路径
+    file_a_path = r'D:\gitee\EEG_Neurofeedback\S09_D03_segment.csv'  # 这里替换为您的文件A路径
+    file_b_path = r'D:\gitee\EEG_Neurofeedback\S09_D03_eye_data.csv'  # 这里替换为您的文件B路径
 
     # 加载数据
     file_a, file_b = load_data(file_a_path, file_b_path)

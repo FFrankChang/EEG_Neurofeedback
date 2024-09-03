@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 # Define the directory containing the CSV files (adjust this path as necessary)
-directory = r'F:\NFB_EXP\Exp_V1_data\filtered\S07_D03'
+directory = r'E:\NFB_data_backup\filtered\S09_D03'
 
 # Initialize a DataFrame to store the summary information
 summary_df = pd.DataFrame(columns=['segmentStart', 'segmentEnd', 'segmentName', 'segmentSource'])
@@ -23,8 +23,7 @@ def get_segment_start(df, c_code):
         return df[df['TOR'] == 'Yes']['timestamp'].iloc[0]
     elif c_code == 'C02':
         # Get the timestamp where TOR changes from "False" to "True"
-        tor_changes = df['TOR'].shift(1) != df['TOR']
-        return df[tor_changes & (df['TOR'] == 'True')]['timestamp'].iloc[0]
+        return df[df['TOR'] == True]['timestamp'].iloc[0]
 
 # List and sort the CSV files based on the datetime embedded in their filenames
 files = [f for f in os.listdir(directory) if 'carla' in f and f.endswith('.csv') and ('C01' in f or 'C02' in f)]
@@ -62,5 +61,5 @@ for index, filename in enumerate(files, start=1):
 summary_df = pd.DataFrame(data_rows)
 
 # Save the summary to a new CSV file
-summary_df.to_csv('S03_segment.csv', index=False)
+summary_df.to_csv('S09_D03_segment.csv', index=False)
 

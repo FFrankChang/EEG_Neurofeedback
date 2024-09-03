@@ -25,7 +25,7 @@ def process_files(root_dir):
                 file_path = os.path.join(subdir, file_name)
                 if os.path.isfile(file_path):
                     data = pd.read_csv(file_path)
-                    data = data[(data['timestamp'] >= row['TOR Time']) & (data['timestamp'] <= row['TOR 20'])]
+                    data = data[(data['timestamp'] >= row['TOR Time']) & (data['timestamp'] <= row['Last Time'])]
                     if 'C01' in file_name and 'Steering_Angle' in data.columns:
                         plot_data(file_path, data, 'Steering_Angle', row['take over time'])
                     elif 'C02' in file_name and 'Steering' in data.columns:

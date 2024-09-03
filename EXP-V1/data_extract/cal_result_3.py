@@ -44,7 +44,7 @@ def process_file(file_path):
     first_yes_index = data[data['TOR'] == 'Yes'].index[0]
     data_post_tor_yes = data.loc[first_yes_index:]
     min_ttc = data_post_tor_yes['TTC'].min()
-    steering_angle_std = data_post_tor_yes['Steering_Angle'].std()
+    steering_angle_std = data_post_tor_yes['Steering_Angle'].abs().std()
     acceleration_x_mean = data_post_tor_yes['Acceleration_x'].mean()
     acceleration_x_std = data_post_tor_yes['Acceleration_x'].std()
     data_post_tor_yes['Acceleration_x_change_rate'] = data_post_tor_yes['Acceleration_x'].diff() / data_post_tor_yes['timestamp'].diff()

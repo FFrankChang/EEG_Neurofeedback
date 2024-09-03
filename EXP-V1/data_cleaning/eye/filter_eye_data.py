@@ -1,8 +1,8 @@
 import pandas as pd
 
 # 定义输入和输出文件的路径
-input_file_path = r'F:\NFB_EXP\Exp_V1_data\filtered\S07_D03\EYE_20240721171629.csv'
-output_file_path = 'eye_data.csv'
+input_file_path = r'E:\NFB_data_backup\filtered\S09_D03\EYE_20240719165309.csv'
+output_file_path = 'S09_D03_eye_data.csv'
 
 # 加载CSV文件
 data = pd.read_csv(input_file_path)

@@ -70,7 +70,7 @@ def process_data_in_folder(folder_path):
         
 
 index_csv_path = r'D:\gitee\EEG_Neurofeedback\data_analysis\results\20240606\20240606_trials_index.csv'
-for i in range(2,11):
+for i in range(2,3):
     subject = 's' + str(i).zfill(2)
     folder_paths=filter_folder_paths(index_csv_path,subject=subject)
     for path in folder_paths:

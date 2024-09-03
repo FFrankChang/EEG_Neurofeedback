@@ -21,7 +21,7 @@ def create_change_plot(data, scenario, folder_path):
     pivot_table = scenario_data.pivot_table(index='subject', columns='condition', values='Steering_Angle_Std')
     pivot_table['change_ratio'] = (pivot_table['silence'] - pivot_table['feedback']) / pivot_table['silence']
     mean_change_ratio = pivot_table['change_ratio'].mean()
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(14, 8))
 
     # 设定颜色
     colors = pivot_table['change_ratio'].apply(lambda x: 'palegreen' if x >= 0 else 'lightcoral').values

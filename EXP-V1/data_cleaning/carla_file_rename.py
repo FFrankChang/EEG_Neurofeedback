@@ -1,12 +1,12 @@
 import os
 
 # Specify the path to the directory containing the folders
-path_to_directories = r'F:\NFB_EXP\Exp_V1_data\filtered'
+path_to_directories = r'E:\NFB_data_backup\filtered'
 
 # Mapping to replace parts of file names
 replacement_map = {
-    's01': 'c01',
-    's02': 'c02'
+    'c01': 'C01',
+    'c02': 'C02'
 }
 
 def rename_files(directory):

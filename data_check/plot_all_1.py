@@ -18,9 +18,7 @@ def plot_data(file_path, data, take_over_time,tor_time):
     axs[0].set_xlabel('relative_time(s)')
     axs[0].set_ylabel(column_name)
     axs[0].set_title(f'{os.path.basename(file_path)} {column_name}')
-    
-    if pd.notna(take_over_time):
-        data.loc[data['relative_time'] < 0, ['Throttle', 'Brake']] = 0
+    take_over_relative = take_over_time - tor_time
 
     # 绘制第二个图：Throttle
     if 'Throttle' in data.columns:
@@ -39,11 +37,13 @@ def plot_data(file_path, data, take_over_time,tor_time):
         axs[2].set_ylim([-0.1,1.1])
     
     if pd.notna(take_over_time):
-        take_over_relative = take_over_time - tor_time
         for ax in axs:
             ax.axvline(x=take_over_relative, color='lightcoral', linestyle='--', label='Take Over Time')
             ax.legend()
             
+    if pd.notna(take_over_time):
+        data.loc[data['relative_time'] < take_over_relative, ['Throttle', 'Brake']] = 0
+        
     # 保存为PNG，使用CSV文件名
     plt.tight_layout()
     plt.savefig(file_path.replace('.csv', '.png'))
@@ -59,7 +59,7 @@ def process_files(root_dir):
                 file_path = os.path.join(subdir, file_name)
                 if os.path.isfile(file_path):
                     data = pd.read_csv(file_path)
-                    data = data[(data['timestamp'] >= row['TOR Time']) & (data['timestamp'] <= row['TOR 20'])]
+                    data = data[(data['timestamp'] >= row['TOR Time']) & (data['timestamp'] <= row['Last Time'])]
                     plot_data(file_path, data, row['take over time'], row['TOR Time'])
                 else:
                     print(f"File {file_name} not found in {subdir}.")
