@@ -7,7 +7,7 @@ def batch_rename_csv_files(folder_path):
         
         if os.path.isdir(subfolder_path):
             for filename in os.listdir(subfolder_path):
-                if filename.endswith(".csv") and "C04" in filename:
+                if filename.endswith(".csv") and "EEG" in filename:
                     old_file_path = os.path.join(subfolder_path, filename)
                     new_filename = f"{subfolder}_{filename}"
                     new_file_path = os.path.join(subfolder_path, new_filename)

@@ -14,7 +14,7 @@ def extract_and_save_csv_data(folder_path):
                     data = pd.read_csv(file_path)
                     filtered_data = data[data['event_triggered'] == True]
 
-                    extracted_data = filtered_data[['timestamp', 'event_value']]
+                    extracted_data = filtered_data[['timestamp', 'event_value','reaction_time_2','reaction_time_3','reaction_time_4','reaction_time_5','reaction_time_8','reaction_time_10']]
 
                     if 'simple' in filename.lower():
                         extracted_data['scenario'] = 'simple'
