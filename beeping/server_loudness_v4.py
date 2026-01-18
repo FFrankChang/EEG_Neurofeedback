@@ -29,7 +29,7 @@ min_volume = 0.1
 rl_playing = False
 rl_last_play_time = 0
 rl_play_duration = 5  # Will be randomly set to 5 or 10
-rl_pause_duration = 15  # Pause duration between RL plays (longer interval)
+rl_pause_duration = random.randint(5, 60)  # Random pause duration between 5-60s
 
 # Feedback mode control
 feedback_playing = False
@@ -127,7 +127,6 @@ def play_audio_rl():
                 rl_playing = True
                 play_start_time = current_time
                 rl_last_play_time = current_time
-                print(f"[RL] 开始播放 {rl_play_duration}秒，音量: {vol:.2f}")
                 
                 # Play for the determined duration with volume updates
                 while True:
@@ -147,7 +146,9 @@ def play_audio_rl():
                 # Stop playing
                 pygame.mixer.music.stop()
                 rl_playing = False
-                print(f"[RL] 停止播放，等待 {rl_pause_duration}秒后再次播放")
+                
+                # Generate new random pause duration for next cycle
+                rl_pause_duration = random.randint(5, 60)
             else:
                 # Wait a bit before checking again
                 time.sleep(0.5)
@@ -185,7 +186,7 @@ def handle_command(command):
             current_mode = "RL"
             is_stopped = False  # Clear stop flag
             rl_last_play_time = 0  # Reset timer to allow immediate play
-            print(f"[命令] 切换到 RL 模式 ")
+            rl_pause_duration = random.randint(5, 60)  # Generate new random pause duration
         else:
             print(f"[命令] 未知命令: {command}")
             return
