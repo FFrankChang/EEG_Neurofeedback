@@ -10,7 +10,7 @@ from collections import deque
 pygame.mixer.init()
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-audio_file = os.path.join(current_dir, "heartbeat_5s.mp3")
+audio_file = os.path.join(current_dir, "heartbeat.mp3")
 
 # Global state variables
 current_mode = "silence"  # feedback, silence, stop, RL
@@ -18,9 +18,9 @@ mode_lock = threading.Lock()
 volume_lock = threading.Lock()
 
 # Volume control with sliding window
-volume_history = deque(maxlen=10)  # 滑窗大小为10，避免音量波动太快
+volume_history = deque(maxlen=3)  # 滑窗大小为10，避免音量波动太快
 current_volume = 0.5
-base_volume = 0.05
+base_volume = 0.1
 max_volume = 1
 min_volume = 0.1
 
