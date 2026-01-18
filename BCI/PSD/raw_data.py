@@ -76,7 +76,7 @@ def main():
     global stop_event
     stop_event = Event()
     current_date_time = datetime.now().strftime('%Y%m%d%H%M%S')
-    base_path = 'F:\\NFB_EXP\\Exp_V2_data'
+    base_path = 'E:\\NFB_EXP\\Exp_202601_v1'
 
     eye_data_filename = f'EYE_{current_date_time}.csv'
     eeg_data_filename = f'EEG_{current_date_time}.csv'
