@@ -120,16 +120,29 @@ def play_audio_rl():
                 # Randomly choose play duration: 5s or 10s
                 rl_play_duration = random.choice([5, 10])
                 
-                # Load and play audio
+                # Load and play audio in loop
                 pygame.mixer.music.load(audio_file)
                 vol = update_volume_smooth()
-                pygame.mixer.music.play()
+                pygame.mixer.music.play(-1)  # Loop indefinitely
                 rl_playing = True
+                play_start_time = current_time
                 rl_last_play_time = current_time
                 print(f"[RL] 开始播放 {rl_play_duration}秒，音量: {vol:.2f}")
                 
-                # Play for the determined duration
-                time.sleep(rl_play_duration)
+                # Play for the determined duration with volume updates
+                while True:
+                    with mode_lock:
+                        if is_stopped or current_mode != "RL":
+                            break
+                    
+                    elapsed = time.time() - play_start_time
+                    if elapsed >= rl_play_duration:
+                        break
+                    
+                    # Update volume randomly with smoothing
+                    vol = update_volume_smooth()
+                    time.sleep(1)  # Update volume every second
+                    print(f"[RL] 播放中，音量: {vol:.2f}, 已播放: {int(elapsed)}s/{rl_play_duration}s")
                 
                 # Stop playing
                 pygame.mixer.music.stop()
