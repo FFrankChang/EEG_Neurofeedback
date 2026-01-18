@@ -16,6 +16,7 @@ audio_file = os.path.join(current_dir, "heartbeat.mp3")
 current_mode = "silence"  # feedback, silence, stop, RL
 mode_lock = threading.Lock()
 volume_lock = threading.Lock()
+is_stopped = False  # Flag to force stop all playback
 
 # Volume control with sliding window
 volume_history = deque(maxlen=3)  # 滑窗大小为10，避免音量波动太快
@@ -59,11 +60,21 @@ def update_volume_smooth():
 
 def play_audio_continuously():
     """Thread function for feedback mode - continuous audio playback"""
-    global feedback_playing
+    global feedback_playing, is_stopped
     
     while True:
         with mode_lock:
             mode = current_mode
+            stopped = is_stopped
+        
+        # If stop flag is set, stop playing
+        if stopped:
+            if feedback_playing:
+                pygame.mixer.music.stop()
+                feedback_playing = False
+                print("[Feedback] 收到停止命令，停止播放")
+            time.sleep(0.1)
+            continue
         
         if mode == "feedback":
             if not feedback_playing:
@@ -85,11 +96,21 @@ def play_audio_continuously():
 
 def play_audio_rl():
     """Thread function for RL mode - intermittent audio playback"""
-    global rl_playing, rl_last_play_time, rl_play_duration
+    global rl_playing, rl_last_play_time, rl_play_duration, is_stopped
     
     while True:
         with mode_lock:
             mode = current_mode
+            stopped = is_stopped
+        
+        # If stop flag is set, stop playing
+        if stopped:
+            if rl_playing:
+                pygame.mixer.music.stop()
+                rl_playing = False
+                print("[RL] 收到停止命令，停止播放")
+            time.sleep(0.1)
+            continue
         
         if mode == "RL":
             current_time = time.time()
@@ -126,7 +147,7 @@ def play_audio_rl():
 
 def handle_command(command):
     """Handle incoming commands"""
-    global current_mode, rl_last_play_time
+    global current_mode, rl_last_play_time, is_stopped
     
     command = command.strip().lower()
     
@@ -135,20 +156,23 @@ def handle_command(command):
         
         if command == "feedback":
             current_mode = "feedback"
+            is_stopped = False  # Clear stop flag
             print(f"[命令] 切换到 Feedback 模式 (持续播放)")
         elif command == "silence":
             current_mode = "silence"
+            is_stopped = False  # Clear stop flag
             pygame.mixer.music.stop()
             print(f"[命令] 切换到 Silence 模式 (静音)")
         elif command == "stop":
+            is_stopped = True  # Set stop flag to force stop all playback
             pygame.mixer.music.stop()
-            print(f"[命令] 停止播放当前音频")
-            # Don't change mode, just stop current playback
+            print(f"[命令] 强制停止所有播放")
             return
         elif command == "rl":
             current_mode = "RL"
+            is_stopped = False  # Clear stop flag
             rl_last_play_time = 0  # Reset timer to allow immediate play
-            print(f"[命令] 切换到 RL 模式 (间歇性播放)")
+            print(f"[命令] 切换到 RL 模式 ")
         else:
             print(f"[命令] 未知命令: {command}")
             return
@@ -176,7 +200,6 @@ def main():
     print("  - feedback: 持续播放音频")
     print("  - silence: 静音模式")
     print("  - stop: 停止当前播放")
-    print("  - RL: 间歇性播放 (5s或10s，随机)")
     print("=" * 50)
     
     # Set up socket for receiving commands
