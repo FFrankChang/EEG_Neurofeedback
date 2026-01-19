@@ -1,6 +1,7 @@
 import tkinter as tk
 import socket
 import random
+import time
 
 # Variable to store the last clicked condition
 current_condition = "silence"
@@ -13,13 +14,19 @@ def generate_conditions():
 
 # Function to send UDP message, specifying port
 def send_udp_message(message, port):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udp_host_carla = "192.168.31.94"  # Host IP
     udp_host_earphone = "192.168.31.197"  # Host IP
-    sock.sendto(message.encode(), (udp_host_carla, port))
-    sock.sendto(message.encode(), (udp_host_earphone, port))
-    print(f"'{message}' sent to port {port} {udp_host_carla}")
-    sock.close()
+    targets = [udp_host_carla, udp_host_earphone]
+    
+    for host in targets:
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.sendto(message.encode(), (host, port))
+            print(f"'{message}' sent to {host}:{port}")
+            sock.close()
+            time.sleep(0.1)  # 10ms 延迟，确保包不会丢失
+        except Exception as e:
+            print(f"Failed to send to {host}:{port} - {e}")
 
 # Create the main window
 root = tk.Tk()
